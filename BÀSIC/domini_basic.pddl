@@ -1,11 +1,13 @@
 (define (domain hotel)
-  (:requirements :strips :typing :negative-preconditions)
+  (:requirements :typing :negative-preconditions :adl)
 
-  (:types reserva habitacio)
+  (:types reserva habitacio dia)
 
   (:predicates 
     (assignada ?r - reserva)
     (compatible ?r - reserva ?h - habitacio)
+    (dies-reserva ?r - reserva ?d - dia)
+    (ocupada ?h - habitacio ?d - dia)
   )
 
   (:action assignar-habitacio
@@ -13,9 +15,19 @@
     :precondition (and 
       (not (assignada ?r))
       (compatible ?r ?h)
+      (forall (?d - dia)
+        (when (dies-reserva ?r ?d)
+          (not(ocupada ?h ?d))
+        )
+      
+      )
     )
     :effect (and
       (assignada ?r)
+      (forall (?d - dia)
+        (when (dies-reserva ?r ?d)
+               (ocupada ?h ?d))
+      )
     )
   )
 )
