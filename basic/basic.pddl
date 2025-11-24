@@ -1,5 +1,4 @@
-(define (problem basic)
-  (:domain hotel)
+(define (problem problemabasic) (:domain hotelbasic)
 
   (:objects 
     ;; Reserves
