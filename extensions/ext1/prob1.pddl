@@ -9,12 +9,6 @@
   )
 
   (:init
-    (compatible r1 h2) 
-    (compatible r1 h3)
-    (compatible r2 h1) 
-    (compatible r2 h2) 
-    (compatible r2 h3)
-    (compatible r3 h3)
 
     (dies-reserva r1 d1) 
     (dies-reserva r1 d2)
@@ -27,7 +21,7 @@
     
     (= (capacitat h1) 2)
     (= (capacitat h2) 4)
-    (= (capacitat h3) 1)
+    (= (capacitat h3) 3)
 
     ;; Persones per reserva
     (= (persones r1) 2)
@@ -36,4 +30,7 @@
   )
 
   (:goal (forall (?r - reserva) (processada ?r)))
+
+  (:metric 
+    maximize (total-assignades))
 )

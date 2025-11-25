@@ -316,6 +316,8 @@ font-family: Helvetica, Arial, sans-serif;
 
 ### 3.1.1 Domini
 
+Només hi ha una acció: assignar habitacio
+
 ### 3.1.2 Problemes
 
 #### 3.1.2.1 Problema 1
@@ -326,6 +328,8 @@ font-family: Helvetica, Arial, sans-serif;
 
 ### 3.2.1 Domini
 
+S'elimina el predicat compatible i totes les referències a aquest en les accions, ja que es considerarà que les reserves compatibles seran les que la capacitat de l'habitació sigui suficient per a les persones de la reserva.
+
 ### 3.2.2 Problemes
 
 #### 3.2.2.1 Problema 1
@@ -333,6 +337,8 @@ font-family: Helvetica, Arial, sans-serif;
 #### 3.2.2.2 Problema 2
 
 ## 3.3 Extensió 2
+
+S'afegeix un nou predicat vol-orientacio per a les reserves, que indica l'orientació que es desitja per a l'habitació assignada. A l'acció assigar habitació comprova que l'habitació tingui l'orientació demanada per la reserva. Com que volem maximitzar les assignacions, i és preferent assignar habitacions amb l'orientació demanada però no és imprescindible, fem que una reserva puntui 2 si es assigna una habitació amb l'orientació demanada i 1 si s'assigna una habitació amb una orientació diferent. Així, l'objectiu de maximitzar les assignacions es manté, però ara es prioritzen les assignacions que compleixin l'orientació demanada.
 
 ### 3.3.1 Domini
 

@@ -10,21 +10,6 @@
     (ocupada ?h - habitacio ?d - dia ?r - reserva) ; es ocupada per una reserva concreta
   )
 
-  (:action assignar-dia
-      :parameters (
-        ?r - reserva
-        ?h - habitacio
-        ?d - dia
-      )
-      :precondition (and 
-        (compatible ?r ?h)
-        (dies-reserva ?r ?d)
-        (not (exists (?r2 - reserva) (ocupada ?h ?d ?r2)))
-      )
-      :effect (and
-        (ocupada ?h ?d ?r)
-      )
-  )
   (:action assignar-habitacio
       :parameters (
         ?r - reserva

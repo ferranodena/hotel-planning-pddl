@@ -21,6 +21,7 @@
 
     (dies-reserva r1 d1)
     (dies-reserva r1 d2)
+    (dies-reserva r1 d3)
     (dies-reserva r2 d2)
     (dies-reserva r2 d3)
     (dies-reserva r3 d3)

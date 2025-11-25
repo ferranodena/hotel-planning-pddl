@@ -6,7 +6,6 @@
 
   (:predicates 
     (assignada ?r - reserva)
-    (compatible ?r - reserva ?h - habitacio)
     (dies-reserva ?r - reserva ?d - dia)
     (ocupada ?h - habitacio ?d - dia ?r - reserva)
     (processada ?r - reserva) ; per saber si ja hem processat la reserva
@@ -22,10 +21,10 @@
   (:action assignar-habitacio
       :parameters (
         ?r - reserva 
-        ?h - habitacio)
+        ?h - habitacio
+      )
       :precondition (and
         (not (processada ?r))          ;; només si encara no l'hem tractat
-        (compatible ?r ?h)
         (>= (capacitat ?h) (persones ?r)) ; control de capacitat de les habitacions
         (not (exists (?d - dia ?r2 - reserva) 
              (and (dies-reserva ?r ?d) (ocupada ?h ?d ?r2))))
