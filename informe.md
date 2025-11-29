@@ -278,26 +278,27 @@ font-family: Helvetica, Arial, sans-serif;
 - [1. Introducció](#1-introducció)
 - [2. Objectius i metodologia](#2-objectius-i-metodologia)
 - [3. Disseny del domini i dels problemes](#3-disseny-del-domini-i-dels-problemes)
-- [3.1 Extensió bàsica](#31-extensió-bàsica)
+- [3.0 Extensió bàsica](#30-extensió-bàsica)
+  - [3.0.1 Domini](#301-domini)
+  - [3.0.2 Problemes](#302-problemes)
+    - [3.0.2.1 Problema 1: Poques habitacions, moltes reserves](#3021-problema-1-poques-habitacions-moltes-reserves)
+    - [3.0.2.2 Problema 2: Moltes habitacions, poques reserves](#3022-problema-2-moltes-habitacions-poques-reserves)
+- [3.1 Extensió 1](#31-extensió-1)
   - [3.1.1 Domini](#311-domini)
   - [3.1.2 Problemes](#312-problemes)
-    - [3.1.2.1 Problema 1](#3121-problema-1)
-    - [3.1.2.2 Problema 2](#3122-problema-2)
-- [3.2 Extensió 1](#32-extensió-1)
+    - [3.1.2.1 Problema 1: Dilema de l'optimització](#3121-problema-1-dilema-de-loptimització)
+    - [3.1.2.2 Problema 2: Reserves solapades](#3122-problema-2-reserves-solapades)
+- [3.2 Extensió 2](#32-extensió-2)
   - [3.2.1 Domini](#321-domini)
   - [3.2.2 Problemes](#322-problemes)
-    - [3.2.2.1 Problema 1](#3221-problema-1)
-    - [3.2.2.2 Problema 2](#3222-problema-2)
-- [3.3 Extensió 2](#33-extensió-2)
+    - [3.2.2.1 Problema 1: El puzzle d'afinitats](#3221-problema-1-el-puzzle-dafinitats)
+    - [3.2.2.2 Problema 2: Selecció VIP](#3222-problema-2-selecció-vip)
+    - [3.2.2.3 Problema 3: L'Agent de Viatges Flexible](#3223-problema-3-lagent-de-viatges-flexible)
+- [3.3 Extensió 3](#33-extensió-3)
   - [3.3.1 Domini](#331-domini)
   - [3.3.2 Problemes](#332-problemes)
     - [3.3.2.1 Problema 1](#3321-problema-1)
     - [3.3.2.2 Problema 2](#3322-problema-2)
-- [3.4 Extensió 3](#34-extensió-3)
-  - [3.4.1 Domini](#341-domini)
-  - [3.4.2 Problemes](#342-problemes)
-    - [3.4.2.1 Problema 1](#3421-problema-1)
-    - [3.4.2.2 Problema 2](#3422-problema-2)
 - [4. Conclusions](#4-conclusions)
 
 <div class="page-break"></div>
@@ -312,33 +313,71 @@ font-family: Helvetica, Arial, sans-serif;
 
 ## 3. Disseny del domini i dels problemes
 
-## 3.1 Extensió bàsica
+## 3.0 Extensió bàsica
 
-### 3.1.1 Domini
+### 3.0.1 Domini
 
 Només hi ha una acció: assignar habitacio
 
-### 3.1.2 Problemes
+### 3.0.2 Problemes
 
-#### 3.1.2.1 Problema 1
+#### 3.0.2.1 Problema 1: Poques habitacions, moltes reserves
 
-#### 3.1.2.2 Problema 2
+Hipòtesi: amb reserves creixents i poques habitacions, el temps creix ràpid.
 
-## 3.2 Extensió 1
+#### 3.0.2.2 Problema 2: Moltes habitacions, poques reserves
 
-### 3.2.1 Domini
+Hipòtesi: amb poques reserves i moltes habitacions, el temps és menor, o no creix tant ràpid.
+
+## 3.1 Extensió 1
+
+### 3.1.1 Domini
 
 S'elimina el predicat compatible i totes les referències a aquest en les accions, ja que es considerarà que les reserves compatibles seran les que la capacitat de l'habitació sigui suficient per a les persones de la reserva.
 
-### 3.2.2 Problemes
+### 3.1.2 Problemes
 
-#### 3.2.2.1 Problema 1
+#### 3.1.2.1 Problema 1: Dilema de l'optimització
 
-#### 3.2.2.2 Problema 2
+Aquest problema demostra que el planificador és intel·ligent: ha de preferir assignar dues reserves curtes en lloc d'una reserva llarga si ocupen la mateixa habitació, ja qeu l'objectiu és maximitzar les assignacions.
 
-## 3.3 Extensió 2
+Hipòtesi: el planificador serà capaç de maximitzar les assignacions, és a dir, demostra un comportament intel·ligent.
+
+#### 3.1.2.2 Problema 2: Reserves solapades
+
+El planificador, maximitzant total-assignades, triarà dues reserves que no es solapin en dies (per exemple r1 i r3) i en descartarà una (per exemple r2), obtenint total-assignades = 2.
+
+Hipòtesi: el planificador serà capaç de maximitzar les assignacions evitant solapaments.
+
+## 3.2 Extensió 2
 
 S'afegeix un nou predicat vol-orientacio per a les reserves, que indica l'orientació que es desitja per a l'habitació assignada. A l'acció assigar habitació comprova que l'habitació tingui l'orientació demanada per la reserva. Com que volem maximitzar les assignacions, i és preferent assignar habitacions amb l'orientació demanada però no és imprescindible, fem que una reserva puntui 2 si es assigna una habitació amb l'orientació demanada i 1 si s'assigna una habitació amb una orientació diferent. Així, l'objectiu de maximitzar les assignacions es manté, però ara es prioritzen les assignacions que compleixin l'orientació demanada.
+
+### 3.2.1 Domini
+
+### 3.2.2 Problemes
+
+Per validar l'Extensió 2, s'han dissenyat tres experiments sintètics que aïllen comportaments específics del planificador: capacitat d'ordenació (Exp 1), capacitat de filtratge per qualitat (Exp 2) i capacitat de sacrifici de preferències per maximitzar ocupació (Exp 3)."
+
+#### 3.2.2.1 Problema 1: El puzzle d'afinitats
+
+Demostrar que el planificador és capaç d'ordenar i intercanviar reserves per aconseguir la màxima puntuació global, en lloc de fer assignacions greedy (agafar la primera habitació lliure encara que no tingui l'orientació correcta). Una assignació tonta (greedy) podria posar reserves "Sud" a habitacions "Nord" i viceversa. Això donaria 1 punt per reserva. Puntuació total: $N$. L'assignació intel·ligent ha de creuar-les perfectament: "Nord" amb "Nord" i "Sud" amb "Sud". El planificador ha de "descobrir" que val la pena buscar la combinació perfecta.
+
+Hipòtesi: el planificador serà capaç de maximitzar la puntuació global tenint en compte les orientacions demanades.
+
+#### 3.2.2.2 Problema 2: Selecció VIP
+
+Demostrar que, davant l'escassetat de recursos, el planificador sap prioritzar els clients que encaixen millor (els que donen 2 punts) i deixar fora o en pitjors habitacions els que no encaixen (els que donarien 1 punt), o simplement descartar els que aporten menys valor si no hi ha lloc per a tothom. Hi ha un coll d'ampolla: només $K$ habitacions disponibles (totes, per exemple, orientació Nord). La meitat de les reserves volen Nord (match = 2 punts). L'altra meitat volen Sud (mismatch = 1 punt). Com que no hi ha lloc per a tothom (només hi ha $K$ llocs), el planificador ha d'omplir l'hotel només amb les reserves que volen Nord. Puntuació òptima: $2 \times K$. Si s'equivoqués i agafés algú de Sud, perdria punts. Aquest experiment demostra que el sistema entén el "cost d'oportunitat".
+
+Hipòtesi: el planificador serà capaç de prioritzar les reserves que aporten més valor en situacions d'escassetat de recursos.
+
+#### 3.2.2.3 Problema 3: L'Agent de Viatges Flexible
+
+Demostrar que el sistema entén que l'orientació (preferència) és menys important que la capacitat (restricció dura), però que intenta satisfer totes dues quan pot. Hi ha $N$ reserves i $N$ habitacions. Totes les reserves tenen una preferència d'orientació que coincideix amb una habitació (match = 2 punts). Però algunes reserves tenen una capacitat que només encaixa amb una habitació de diferent orientació (mismatch = 1 punt). Per exemple, la reserva r1 necessita capacitat 4 i vol orientació Nord (habitació h1). Però l'habitació h1 té capacitat 2 (no serveix). L'única habitació amb capacitat 4 és h2, però té orientació Sud (mismatch). El planificador ha de triar entre no assignar r1 (0 punts) o assignar-la a h2 (1 punt). L'assignació òptima és sacrificar algunes preferències per satisfer totes les restriccions dures.
+
+Hipòtesi: el planificador serà capaç de sacrificar preferències per maximitzar l'ocupació complint les restriccions dures.
+
+## 3.3 Extensió 3
 
 ### 3.3.1 Domini
 
@@ -347,15 +386,5 @@ S'afegeix un nou predicat vol-orientacio per a les reserves, que indica l'orient
 #### 3.3.2.1 Problema 1
 
 #### 3.3.2.2 Problema 2
-
-## 3.4 Extensió 3
-
-### 3.4.1 Domini
-
-### 3.4.2 Problemes
-
-#### 3.4.2.1 Problema 1
-
-#### 3.4.2.2 Problema 2
 
 ## 4. Conclusions
