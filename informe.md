@@ -323,11 +323,62 @@ Només hi ha una acció: assignar habitacio
 
 #### 3.0.2.1 Problema 1: Poques habitacions, moltes reserves
 
-Hipòtesi: amb reserves creixents i poques habitacions, el temps creix ràpid.
+En aquest experiment volem avaluar la capacitat del planificador per prioritzar i seleccionar el millor subconjunt de reserves quan els recursos són extremadament limitats. Per fer-ho, mantindrem fix el nombre d'habitacions (``n=2``) i incrementarem progressivament el nombre de reserves candidates (5, 10, 15, 20...). Això força el sistema a gestionar un escenari d'alta competència on la majoria de reserves s'han de descartar. S'espera observar:
+
+1. **Comportament Intel·ligent:** El planificador haurà de triar les combinacions de reserves que maximitzin l'ocupació total (evitant forats temporals), en lloc d'agafar simplement les primeres de la llista.
+2. **Escalabilitat:** S'espera un creixement no lineal (ràpid) del temps d'execució, ja que l'espai de cerca per trobar la combinació òptima creix combinatorialment a mesura que afegim més reserves solapades."
+
+Per tant, plantegem el següent parell d'hipòtesis per a aquest experiment:
+
+Respecte al comportament del planificador en aquest escenari d'alta competència:
+
+- $H_0$: El planificador no és capaç de maximitzar l'ocupació total en situacions d'escassetat de recursos, seleccionant reserves de manera aleatòria o greedy.
+- $H_1$: El planificador és capaç de maximitzar l'ocupació total, seleccionant reserves de manera intel·ligent per evitar forats temporals.
+
+Hipòtesi sobre l'escalabilitat del planificador:
+
+- $H_0$: El temps d'execució del planificador creix linealment amb el nombre de reserves, indicant una gestió eficient de l'espai de cerca.
+- $H_1$: El temps d'execució del planificador creix de manera no lineal (ràpid) amb el nombre de reserves, indicant un augment combinatorial de l'espai de cerca.
+
+Generem doncs diversos problemes amb 2 habitacions i un nombre creixent de reserves (5, 10, 15, 20, 25) amb el nostre generador de problemes. Provem d'executar-los amb el planificador i mesurem el temps d'execució i les habitacions assignades amb èxit per a cada cas. Generem la quantitat de reserves de manera aleatòria completament, per la qual cosa els resultats poden variar lleugerament entre execucions. Executem cada problema diverses vegades i prenem la mitjana per obtenir resultats més fiables. Com que l'assignació és greedy, esperem que el nombre d'assignacions sigui proper al màxim possible (2 habitacions * nombre de reserves que caben sense solapament), però lògicament aquests casos seran difícils en termes generals exactament degut a l'atzar en la generació de reserves. Per tant esperem que el nombre d'assignacions sigui baix, i que hi hagi molts conflictes entre reserves, per tant que el planificador no convergeixi. Tot i així, el temps d'execució hauria de ser creixent, ja que el planificador haurà d'explorar moltes possibilitats per trobar la millor assignació possible, tot i que aquesta no sigui possible en aquest domini.
+
+Pel que fa a la quantitat de reserves assignades, obtenim els següents resultats:
+
+<div class="image-row">
+  <div class="image-column">
+    <img src="./figures/basic/1.png" alt="Gràfic de reserves assignades en l'extensió bàsica">
+    <div class="caption">Figura 1: Reserves assignades en l'extensió bàsica</div>
+  </div>
+</div>
+
+Pel que fa al temps d'execució, obtenim els següents resultats:
+
+<div class="image-row">
+  <div class="image-column">
+    <img src="./figures/basic/2.png" alt="Gràfic de temps d'execució en l'extensió bàsica">
+    <div class="caption">Figura 2: Temps d'execució en l'extensió bàsica</div>
+  </div>
+</div>
 
 #### 3.0.2.2 Problema 2: Moltes habitacions, poques reserves
 
-Hipòtesi: amb poques reserves i moltes habitacions, el temps és menor, o no creix tant ràpid.
+En aquest experiment volem avaluar la capacitat del planificador per gestionar eficientment els recursos quan hi ha una abundància d'habitacions disponibles en comparació amb el nombre de reserves. Per fer-ho, mantindrem fix el nombre de reserves (``m=2``) i incrementarem progressivament el nombre d'habitacions disponibles (5, 10, 15, 20...). Això crea un escenari on el planificador té moltes opcions per assignar les reserves, i s'espera que pugui trobar solucions òptimes ràpidament. S'espera observar:
+
+1. **Comportament Eficient:** El planificador haurà de ser capaç d'assignar totes les reserves disponibles sense problemes, ja que hi ha suficients habitacions per satisfer la demanda.
+2. **Escalabilitat:** S'espera que el temps d'execució creixi de manera lineal o sublineal, ja que l'espai de cerca per trobar assignacions òptimes és reduït en comparació amb l'escenari anterior.
+
+Per tant, plantegem el següent parell d'hipòtesis per a aquest experiment:
+
+Respecte al comportament del planificador en aquest escenari d'abundància de recursos:
+
+- $H_0$: El planificador no és capaç d'assignar totes les reserves disponibles, deixant algunes sense assignar malgrat l'abundància d'habitacions.
+- $H_1$: El planificador és capaç d'assignar totes les reserves disponibles, utilitzant eficientment les habitacions disponibles.
+
+Hipòtesi sobre l'escalabilitat del planificador:
+
+- $H_0$: El temps d'execució del planificador creix de manera no lineal amb el nombre d'habitacions, indicant una gestió ineficient de l'espai de cerca.
+- $H_1$: El temps d'execució del planificador creix de manera lineal o sublineal amb el nombre d'habitacions, indicant una gestió eficient de l'espai de cerca.
+
 
 ## 3.1 Extensió 1
 

@@ -82,17 +82,13 @@ def generar_suite_escalable():
     """
     # Configuracions: (Nom, Reserves, Habitacions, Dies)
     configuracions = [
-        ("prob0101", 3, 2, 3),    
-        ("prob0102", 6, 4, 6),
-        ("prob0103", 9, 6, 9),
-        ("prob0104", 12, 8, 12),
-        ("prob0105", 15, 10, 15),
-        ("prob0106", 18, 12, 18),
-        ("prob0107", 21, 14, 21),
-        ("prob0108", 24, 16, 24),
-        ("prob0109", 27, 18, 27),
-        ("prob0110", 30, 20, 30),
-        ]
+        ("prob0101", 5, 2, 10),
+        ("prob0102", 10, 2, 10),
+        ("prob0103", 15, 2, 10),
+        ("prob0104", 20, 2, 10),
+        ("prob0105", 25, 2, 10),
+    ]
+
 
     print("Generant suite de problemes...")
     for conf in configuracions:

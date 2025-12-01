@@ -6,7 +6,7 @@ def generar_problema_hotel_basic(num_reservas, num_habitaciones, num_dias, seed=
     """
     Genera un fitxer de problema PDDL per al domini 'hotelbasic'.
     Calcula la compatibilitat estàtica (predicat 'compatible') basant-se en 
-    capacitats i mides de grup aleatòries, sense usar fluents numèrics al PDDL final.
+    capacitats i mides de grup aleatòries.
     """
     if seed is not None:
         random.seed(seed)
@@ -25,9 +25,9 @@ def generar_problema_hotel_basic(num_reservas, num_habitaciones, num_dias, seed=
     # --- Init ---
     pddl += "  (:init\n"
     
-    # 1. Generar capacitats INTERNES (no s'escriuen al PDDL, només per càlcul)
+    # 1. Generar capacitats INTERNES (aleatòries)
     capacitats_habitacions = {}
-    pddl += "    ;; Capacitats de les habitacions (implícites per al càlcul de compatibilitat):\n"
+    pddl += "    ;; Capacitats de les habitacions (implícites):\n"
     for i in range(num_habitaciones):
         h_id = f"h{i+1}"
         cap = random.randint(1, 4)
@@ -39,20 +39,22 @@ def generar_problema_hotel_basic(num_reservas, num_habitaciones, num_dias, seed=
     pddl += "    ;; Compatibilitats (persones_reserva <= capacitat_habitacio)\n"
     for i in range(num_reservas):
         r_id = f"r{i+1}"
-        persones = random.randint(1, 4)
-        pddl += f"    ;; Reserva {r_id} ({persones} pax): "
         
-        compatibles_trobades = []
+        persones = random.randint(1, 4)
+        
+        # INFORMACIÓ (Comentari)
+        pddl += f"    ;; Reserva {r_id} ({persones} pax): \n" # Salt de línia IMPORTANT
+        
+        compatibles_trobades = False
         for h_id, cap_h in capacitats_habitacions.items():
             if persones <= cap_h:
-                compatibles_trobades.append(h_id)
-                # AFEGIM EL PREDICAT AL PDDL
-                pddl += f"\n    (compatible {r_id} {h_id})"
+                # AQUI ESTAVA EL PROBLEMA: Ara està en una línia nova, sense ; davant
+                pddl += f"    (compatible {r_id} {h_id})\n"
+                compatibles_trobades = True
         
         if not compatibles_trobades:
-            pddl += " CAP (impossible assignar)"
+            pddl += f"    ;; ALERTA: {r_id} no té cap habitació compatible (massa gran)!\n"
         pddl += "\n"
-    pddl += "\n"
 
     # 3. Generar dies de reserva (Predicat 'dies-reserva')
     pddl += "    ;; Calendari de reserves\n"
@@ -68,7 +70,6 @@ def generar_problema_hotel_basic(num_reservas, num_habitaciones, num_dias, seed=
         
         for j in range(duracion):
             d_idx = dia_inicio + j
-            # Assegurar que no excedim el nombre de dies definits
             if d_idx <= num_dias:
                 d = f"d{d_idx}"
                 pddl += f"    (dies-reserva {r} {d})\n"
@@ -76,9 +77,12 @@ def generar_problema_hotel_basic(num_reservas, num_habitaciones, num_dias, seed=
     pddl += "  )\n\n"
 
     # --- Goal ---
-    # L'objectiu és que totes estiguin assignades
+    # Si el domini té l'acció 'descartar', podem demanar que totes estiguin processades.
+    # Si no té 'descartar', demanar que totes estiguin assignades pot ser impossible (UNSAT).
     pddl += "  (:goal (and\n"
     for i in range(num_reservas):
+        # Canvia 'assignada' per 'processada' si tens l'acció descartar
+        # Si només tens 'assignar', llavors aquest goal pot fallar si no hi caben.
         pddl += f"    (assignada r{i+1})\n"
     pddl += "  ))\n"
     
@@ -86,30 +90,35 @@ def generar_problema_hotel_basic(num_reservas, num_habitaciones, num_dias, seed=
 
     return pddl
 
+
 def generar_suite_escalable():
     """
     Genera 5 problemes amb dificultat incremental per al domini hotelbasic.
     """
     # Configuracions: (Nom, Reserves, Habitacions, Dies)
     configuracions = [
-        ("prob0001", 3, 2, 5),
-        ("prob0002", 6, 3, 10),    
-        ("prob0003", 10, 5, 15),
-        ("prob0004", 20, 8, 30),  
-        ("prob0005", 40, 15, 60)   
+        ("prob0001", 5, 2, 10),
+        ("prob0002", 10, 2, 10),
+        ("prob0003", 15, 2, 10),
+        ("prob0004", 20, 2, 10),
+        ("prob0005", 25, 2, 10),
     ]
+
+    if not os.path.exists("./basic"):
+        os.makedirs("./basic")
 
     print("Generant suite de problemes per a 'hotelbasic'...")
     for conf in configuracions:
         nom, r, h, d = conf
         nom_fitxer = f"./basic/{nom}.pddl"
         
-        contingut = generar_problema_hotel_basic(r, h, d, seed=42, problem_name=nom)
+        contingut = generar_problema_hotel_basic(r, h, d, seed=random.randint(1,10000), problem_name=nom)
         
         with open(nom_fitxer, "w") as f:
             f.write(contingut)
         
         print(f" -> Generat {nom_fitxer}: {r} reserves, {h} habitacions, {d} dies.")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Generador PDDL Hotel Bàsic (Escalable)")
@@ -122,11 +131,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.single:
-        # Generar un sol problema personalitzat
-        contingut = generar_problema_hotel_basic(args.reservas, args.habitaciones, args.dias, seed=42)
+        # Generar un sol problema amb aleatorietat total (seed variable)
+        contingut = generar_problema_hotel_basic(args.reservas, args.habitaciones, args.dias, seed=random.randint(0, 10000))
         with open(args.output, "w") as f:
             f.write(contingut)
         print(f"Problema individual generat a: {args.output}")
     else:
-        # Generar la suite completa de 5 problemes
+        # Generar la suite completa
         generar_suite_escalable()
