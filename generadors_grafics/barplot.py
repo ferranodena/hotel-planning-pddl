@@ -6,16 +6,16 @@ import numpy as np
 # -----------------------------------------------------------------------------
 # 1. DADES D'ENTRADA
 # -----------------------------------------------------------------------------
-NOM_FITXER = 'resultats_basic.csv'
+NOM_FITXER = './resultats/basic/resultats_basic_2.1.csv'
 
 try:
     # Llegim el CSV
-    df_raw = pd.read_csv("resultats_basic.csv")
+    df_raw = pd.read_csv(NOM_FITXER)
     
     # Seleccionem NOMÉS les columnes que ens interessen i les renombren per al gràfic
     # (Assumim que al CSV es diuen 'num_reserves' i 'mitjana_temps_ms')
     df = pd.DataFrame()
-    df['Nombre_Reserves'] = df_raw['num_reserves']
+    df['Nombre_Habitacions'] = df_raw['num_habitacions']
     df['Temps_Execucio'] = df_raw['mitjana_temps_ms']
     
     # Opcional: Si vols filtrar les files on el temps és 0 o buit (perquè van fallar totes)
@@ -39,7 +39,7 @@ plt.figure(figsize=(10, 6))
 # 3. CREACIÓ DEL GRÀFIC
 # -----------------------------------------------------------------------------
 ax = sns.barplot(
-    x='Nombre_Reserves', 
+    x='Nombre_Habitacions', 
     y='Temps_Execucio', 
     data=df, 
     palette='viridis',
@@ -50,8 +50,8 @@ ax = sns.barplot(
 # -----------------------------------------------------------------------------
 # 4. DETALLS I ETIQUETES
 # -----------------------------------------------------------------------------
-plt.title("Escalabilitat del Planificador (Domini Bàsic)", fontsize=16, pad=20, fontweight='bold')
-plt.xlabel("Mida del Problema (Reserves)", fontsize=12, labelpad=15)
+plt.title("Escalabilitat (Domini Bàsic)", fontsize=16, pad=20, fontweight='bold')
+plt.xlabel("Nombre d'habitacions", fontsize=12, labelpad=15)
 plt.ylabel("Temps Mitjà d'Execució (ms)", fontsize=12, labelpad=15)
 
 # Etiquetes sobre les barres

@@ -9,10 +9,10 @@
   (:init
     ;; Capacitats de les habitacions (implícites):
     ;; h1: 3 persones
-    ;; h2: 4 persones
+    ;; h2: 3 persones
 
     ;; Compatibilitats (persones_reserva <= capacitat_habitacio)
-    ;; Reserva r1 (2 pax): 
+    ;; Reserva r1 (1 pax): 
     (compatible r1 h1)
     (compatible r1 h2)
 

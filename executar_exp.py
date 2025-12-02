@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 Orquestrador d'Experiments Genèric per a Metric-FF
-- Executa generador extern.
-- Llança el planificador amb timeout ROBUST.
-- Recull resultats i comptabilitza ERRORS/TIMEOUTS al CSV.
+- Mesura temps amb Python (més precís).
+- Calcula mitjanes incloent casos fallits (Unsolvable).
+- Guarda TOTES les variables de configuració al CSV.
 """
 
 import os
@@ -12,6 +12,7 @@ import re
 import csv
 import random
 import sys
+import time
 
 # =============================================================================
 # CONFIGURACIÓ GLOBAL
@@ -19,22 +20,19 @@ import sys
 GENERADOR_PYTHON = "./basic/generador_basic.py"
 DOMAIN_FILE      = "./basic/domini_basic.pddl"
 FF_EXECUTABLE    = "./programa/metricff.exe"
-OUTPUT_CSV       = "resultats_basic.csv"
-TEMP_DIR         = "./basic/temp_experiments_basic"
+OUTPUT_CSV       = "resultats/basic/resultats_basic_2.1.csv" # Nom nou per diferenciar
+TEMP_DIR         = "./basic/temp_experiments_basic_2.1/"
 
 NUM_REPLIQUES = 10 
-TIMEOUT_SEGONS = 180 # Baixem a 60s per no esperar hores (ja és molt per a un domini basic)
+TIMEOUT_SEGONS = 180 
 
-# Configuracions "Solubles"
+# Configuracions d'experiment (reserves, habitacions, dies)
 CONFIGURACIONS = [
-    (1, 2, 10),
-    (2, 2, 10),
-    (3, 2, 10),  
-    (4, 2, 10),   
-    (5, 2, 10),
-    (6, 2, 10),  
-    (7, 2, 10), 
-    (8, 2, 10), 
+    (2, 100, 10),
+    (2, 150, 10),
+    (2, 200, 10),
+    (2, 250, 10),
+    (2, 300, 10),
 ]
 
 # =============================================================================
@@ -47,7 +45,7 @@ def crear_directori(path):
 
 def cridar_generador_extern(script_path, output_pddl, r, h, d):
     cmd = [
-        "python3", script_path,
+        "python", script_path, 
         "--single",
         "--reservas", str(r),
         "--habitaciones", str(h),
@@ -62,8 +60,10 @@ def cridar_generador_extern(script_path, output_pddl, r, h, d):
         return False
 
 def executar_metric_ff(domain_path, problem_path, timeout=TIMEOUT_SEGONS):
-    """Executa FF amb Popen i kill per assegurar aturada."""
+    """Executa FF i mesura temps Python."""
     proc = None
+    start_time = time.time() 
+    
     try:
         proc = subprocess.Popen(
             [FF_EXECUTABLE, "-o", domain_path, "-f", problem_path],
@@ -71,23 +71,17 @@ def executar_metric_ff(domain_path, problem_path, timeout=TIMEOUT_SEGONS):
         )
         
         stdout, stderr = proc.communicate(timeout=timeout)
+        end_time = time.time()
+        
         output = stdout + stderr
         returncode = proc.returncode
+        
+        # 1. Temps (Python) -> ms
+        temps_ms = (end_time - start_time) * 1000
 
-        if "problem proven unsolvable" in output:
-             # Si és insoluble, comptem com a FAIL o com a resultat vàlid però 0 assignades?
-             # Per a la teva gràfica d'errors, millor retornar codi -1 (com si fos un fail)
-             print("    [INFO] FF diu: Unsolvable")
-             return None, None, 1 # Codi 1 = Error lògic (no solució)
-        # 1. Temps
-        match_time = re.search(r'(\d+\.\d+)\s+seconds\s+total\s+time', output, re.IGNORECASE)
-        if not match_time:
-            match_time = re.search(r'(\d+\.\d+)\s+seconds', output, re.IGNORECASE)
-
-        if match_time:
-            temps_ms = float(match_time.group(1)) * 1000
-        else:
-            temps_ms = None
+        # Detectar Unsolvable
+        if "problem proven unsolvable" in output.lower():
+             return temps_ms, 0, 1 
 
         # 2. Reserves
         output_lower = output.lower()
@@ -102,13 +96,13 @@ def executar_metric_ff(domain_path, problem_path, timeout=TIMEOUT_SEGONS):
         if proc:
             proc.kill()
             proc.communicate()
-        return None, None, -1 # Codi especial per Timeout
+        return None, None, -1 
         
     except Exception as e:
         print(f"    [ERROR] {e}")
         if proc:
             proc.kill()
-        return None, None, -2 # Codi especial per Error Sistema
+        return None, None, -2
 
 def main():
     crear_directori(TEMP_DIR)
@@ -127,9 +121,10 @@ def main():
         r, h, d = conf
         print(f"\n--- Config: {r} Res, {h} Hab, {d} Dies ---")
         
-        temps_total = []
-        assigns_total = []
-        errors_count = 0 # Comptador d'errors/timeouts
+        temps_totals = []   
+        assigns_totals = [] 
+        errors_count = 0 
+        ok_count = 0
         
         for i in range(1, NUM_REPLIQUES + 1):
             nom_prob = f"p_r{r}_h{h}_rep{i}.pddl"
@@ -140,47 +135,55 @@ def main():
             
             t, a, code = executar_metric_ff(DOMAIN_FILE, path_prob, timeout=TIMEOUT_SEGONS)
             
-            # Analitzem el resultat
+            if t is not None:
+                temps_totals.append(t)
+            
+            assigns_totals.append(a if a is not None else 0)
+
             if t is not None and code == 0:
                 status = "OK"
-                temps_total.append(t)
-                assigns_total.append(a)
+                ok_count += 1
             else:
-                # Si és Timeout (-1) o Error (-2) o FF Error (1)
                 errors_count += 1
                 status = "TIMEOUT" if code == -1 else f"FAIL({code})"
 
             print(f"  Rep {i}: {status} -> {f'{t:.1f}ms' if t else '-'} | {a if a is not None else '-'} asg")
 
-        # AGREGAR ESTADÍSTIQUES
-        n_valids = len(temps_total)
-        if n_valids > 0:
-            avg_t = sum(temps_total) / n_valids
-            avg_a = sum(assigns_total) / n_valids
+        # CÀLCUL DE MITJANES
+        n_temps_mesurats = len(temps_totals)
+        
+        if n_temps_mesurats > 0:
+            avg_t = sum(temps_totals) / n_temps_mesurats
         else:
             avg_t = 0
-            avg_a = 0
+            
+        avg_a = sum(assigns_totals) / NUM_REPLIQUES
 
-        # Escriptura de resultats amb columna d'ERRORS
+        # AFEGIM TOTES LES VARIABLES AL RESULTAT
         resultats_csv.append({
-            'num_reserves': r,
+            'num_reserves': r,          # <--- Variable
+            'num_habitacions': h,       # <--- Variable NOVA
+            'num_dies': d,              # <--- Variable NOVA
             'mitjana_temps_ms': avg_t,
             'mitjana_reserves_assignades': avg_a,
-            'timeouts_errors': errors_count,      # <--- NOVA COLUMNA
-            'exit_ratio': f"{n_valids}/{NUM_REPLIQUES}" # <--- NOVA COLUMNA
+            'timeouts_errors': errors_count,
+            'exit_ratio': f"{ok_count}/{NUM_REPLIQUES}" 
         })
         
-        print(f"  >> RESULTAT: {avg_t:.2f}ms | Errors: {errors_count}/{NUM_REPLIQUES}")
+        print(f"  >> RESULTAT: {avg_t:.2f}ms (Global) | Errors: {errors_count}/{NUM_REPLIQUES}")
 
-    # GUARDAR CSV
+    # GUARDAR CSV (AMB NOVES COLUMNES)
     with open(OUTPUT_CSV, 'w', newline='') as f:
-        # Afegim els nous camps a la capçalera
-        fieldnames = ['num_reserves', 'mitjana_temps_ms', 'mitjana_reserves_assignades', 'timeouts_errors', 'exit_ratio']
+        fieldnames = [
+            'num_reserves', 'num_habitacions', 'num_dies', 
+            'mitjana_temps_ms', 'mitjana_reserves_assignades', 
+            'timeouts_errors', 'exit_ratio'
+        ]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(resultats_csv)
     
-    print(f"\nFi. Resultats guardats a {OUTPUT_CSV}")
+    print(f"\nFi. Resultats complets guardats a {OUTPUT_CSV}")
 
 if __name__ == '__main__':
     main()

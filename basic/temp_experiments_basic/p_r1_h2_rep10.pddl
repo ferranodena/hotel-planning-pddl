@@ -8,16 +8,17 @@
 
   (:init
     ;; Capacitats de les habitacions (implícites):
-    ;; h1: 4 persones
+    ;; h1: 2 persones
     ;; h2: 4 persones
 
     ;; Compatibilitats (persones_reserva <= capacitat_habitacio)
     ;; Reserva r1 (3 pax): 
-    (compatible r1 h1)
     (compatible r1 h2)
 
     ;; Calendari de reserves
-    (dies-reserva r1 d2)
+    (dies-reserva r1 d5)
+    (dies-reserva r1 d6)
+    (dies-reserva r1 d7)
   )
 
   (:goal (and

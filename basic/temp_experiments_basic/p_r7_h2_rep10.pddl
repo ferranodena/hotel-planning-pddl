@@ -8,52 +8,51 @@
 
   (:init
     ;; Capacitats de les habitacions (implícites):
-    ;; h1: 2 persones
-    ;; h2: 4 persones
+    ;; h1: 1 persones
+    ;; h2: 3 persones
 
     ;; Compatibilitats (persones_reserva <= capacitat_habitacio)
-    ;; Reserva r1 (3 pax): 
-    (compatible r1 h2)
+    ;; Reserva r1 (4 pax): 
+    ;; ALERTA: r1 no té cap habitació compatible (massa gran)!
 
-    ;; Reserva r2 (1 pax): 
-    (compatible r2 h1)
+    ;; Reserva r2 (2 pax): 
     (compatible r2 h2)
 
-    ;; Reserva r3 (1 pax): 
-    (compatible r3 h1)
+    ;; Reserva r3 (2 pax): 
     (compatible r3 h2)
 
-    ;; Reserva r4 (4 pax): 
+    ;; Reserva r4 (1 pax): 
+    (compatible r4 h1)
     (compatible r4 h2)
 
-    ;; Reserva r5 (3 pax): 
+    ;; Reserva r5 (2 pax): 
     (compatible r5 h2)
 
-    ;; Reserva r6 (2 pax): 
+    ;; Reserva r6 (1 pax): 
     (compatible r6 h1)
     (compatible r6 h2)
 
     ;; Reserva r7 (4 pax): 
-    (compatible r7 h2)
+    ;; ALERTA: r7 no té cap habitació compatible (massa gran)!
 
     ;; Calendari de reserves
-    (dies-reserva r1 d6)
-    (dies-reserva r2 d5)
-    (dies-reserva r2 d6)
-    (dies-reserva r3 d8)
-    (dies-reserva r3 d9)
-    (dies-reserva r4 d9)
-    (dies-reserva r4 d10)
-    (dies-reserva r5 d5)
-    (dies-reserva r5 d6)
-    (dies-reserva r5 d7)
-    (dies-reserva r5 d8)
+    (dies-reserva r1 d7)
+    (dies-reserva r1 d8)
+    (dies-reserva r1 d9)
+    (dies-reserva r2 d3)
+    (dies-reserva r3 d4)
+    (dies-reserva r3 d5)
+    (dies-reserva r3 d6)
+    (dies-reserva r4 d2)
+    (dies-reserva r5 d1)
+    (dies-reserva r5 d2)
+    (dies-reserva r5 d3)
     (dies-reserva r6 d5)
     (dies-reserva r6 d6)
-    (dies-reserva r7 d1)
-    (dies-reserva r7 d2)
-    (dies-reserva r7 d3)
-    (dies-reserva r7 d4)
+    (dies-reserva r6 d7)
+    (dies-reserva r6 d8)
+    (dies-reserva r6 d9)
+    (dies-reserva r7 d8)
   )
 
   (:goal (and

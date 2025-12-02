@@ -16,31 +16,31 @@
     (compatible r1 h1)
     (compatible r1 h2)
 
-    ;; Reserva r2 (2 pax): 
+    ;; Reserva r2 (1 pax): 
     (compatible r2 h1)
     (compatible r2 h2)
 
-    ;; Reserva r3 (3 pax): 
+    ;; Reserva r3 (2 pax): 
     (compatible r3 h1)
     (compatible r3 h2)
 
-    ;; Reserva r4 (2 pax): 
+    ;; Reserva r4 (1 pax): 
     (compatible r4 h1)
     (compatible r4 h2)
 
-    ;; Reserva r5 (3 pax): 
+    ;; Reserva r5 (1 pax): 
     (compatible r5 h1)
     (compatible r5 h2)
 
-    ;; Reserva r6 (4 pax): 
+    ;; Reserva r6 (3 pax): 
     (compatible r6 h1)
     (compatible r6 h2)
 
-    ;; Reserva r7 (3 pax): 
+    ;; Reserva r7 (2 pax): 
     (compatible r7 h1)
     (compatible r7 h2)
 
-    ;; Reserva r8 (2 pax): 
+    ;; Reserva r8 (1 pax): 
     (compatible r8 h1)
     (compatible r8 h2)
 
@@ -48,56 +48,65 @@
     (compatible r9 h1)
     (compatible r9 h2)
 
-    ;; Reserva r10 (1 pax): 
+    ;; Reserva r10 (2 pax): 
     (compatible r10 h1)
     (compatible r10 h2)
 
-    ;; Reserva r11 (3 pax): 
+    ;; Reserva r11 (4 pax): 
     (compatible r11 h1)
     (compatible r11 h2)
 
-    ;; Reserva r12 (3 pax): 
+    ;; Reserva r12 (2 pax): 
     (compatible r12 h1)
     (compatible r12 h2)
 
     ;; Calendari de reserves
+    (dies-reserva r1 d1)
+    (dies-reserva r1 d2)
     (dies-reserva r1 d3)
     (dies-reserva r1 d4)
     (dies-reserva r1 d5)
-    (dies-reserva r1 d6)
+    (dies-reserva r2 d6)
     (dies-reserva r2 d7)
     (dies-reserva r2 d8)
-    (dies-reserva r2 d9)
-    (dies-reserva r2 d10)
+    (dies-reserva r3 d1)
+    (dies-reserva r3 d2)
+    (dies-reserva r3 d3)
     (dies-reserva r3 d4)
     (dies-reserva r3 d5)
-    (dies-reserva r3 d6)
-    (dies-reserva r3 d7)
-    (dies-reserva r3 d8)
+    (dies-reserva r4 d2)
     (dies-reserva r4 d3)
     (dies-reserva r4 d4)
     (dies-reserva r4 d5)
     (dies-reserva r4 d6)
-    (dies-reserva r4 d7)
-    (dies-reserva r5 d4)
+    (dies-reserva r5 d6)
+    (dies-reserva r5 d7)
+    (dies-reserva r5 d8)
+    (dies-reserva r5 d9)
+    (dies-reserva r5 d10)
+    (dies-reserva r6 d1)
     (dies-reserva r6 d2)
     (dies-reserva r6 d3)
-    (dies-reserva r6 d4)
-    (dies-reserva r7 d2)
-    (dies-reserva r7 d3)
-    (dies-reserva r7 d4)
     (dies-reserva r7 d5)
-    (dies-reserva r8 d1)
-    (dies-reserva r9 d2)
-    (dies-reserva r9 d3)
-    (dies-reserva r9 d4)
-    (dies-reserva r10 d6)
-    (dies-reserva r11 d1)
-    (dies-reserva r11 d2)
-    (dies-reserva r11 d3)
-    (dies-reserva r12 d4)
-    (dies-reserva r12 d5)
-    (dies-reserva r12 d6)
+    (dies-reserva r7 d6)
+    (dies-reserva r7 d7)
+    (dies-reserva r7 d8)
+    (dies-reserva r7 d9)
+    (dies-reserva r8 d6)
+    (dies-reserva r8 d7)
+    (dies-reserva r8 d8)
+    (dies-reserva r8 d9)
+    (dies-reserva r8 d10)
+    (dies-reserva r9 d5)
+    (dies-reserva r9 d6)
+    (dies-reserva r9 d7)
+    (dies-reserva r10 d1)
+    (dies-reserva r10 d2)
+    (dies-reserva r10 d3)
+    (dies-reserva r10 d4)
+    (dies-reserva r11 d6)
+    (dies-reserva r12 d2)
+    (dies-reserva r12 d3)
   )
 
   (:goal (and

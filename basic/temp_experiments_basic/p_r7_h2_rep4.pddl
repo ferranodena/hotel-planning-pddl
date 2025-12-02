@@ -9,60 +9,54 @@
   (:init
     ;; Capacitats de les habitacions (implícites):
     ;; h1: 1 persones
-    ;; h2: 1 persones
+    ;; h2: 2 persones
 
     ;; Compatibilitats (persones_reserva <= capacitat_habitacio)
-    ;; Reserva r1 (2 pax): 
+    ;; Reserva r1 (3 pax): 
     ;; ALERTA: r1 no té cap habitació compatible (massa gran)!
 
-    ;; Reserva r2 (4 pax): 
+    ;; Reserva r2 (3 pax): 
     ;; ALERTA: r2 no té cap habitació compatible (massa gran)!
 
-    ;; Reserva r3 (3 pax): 
-    ;; ALERTA: r3 no té cap habitació compatible (massa gran)!
+    ;; Reserva r3 (2 pax): 
+    (compatible r3 h2)
 
     ;; Reserva r4 (4 pax): 
     ;; ALERTA: r4 no té cap habitació compatible (massa gran)!
 
-    ;; Reserva r5 (3 pax): 
-    ;; ALERTA: r5 no té cap habitació compatible (massa gran)!
+    ;; Reserva r5 (1 pax): 
+    (compatible r5 h1)
+    (compatible r5 h2)
 
     ;; Reserva r6 (2 pax): 
-    ;; ALERTA: r6 no té cap habitació compatible (massa gran)!
+    (compatible r6 h2)
 
-    ;; Reserva r7 (4 pax): 
-    ;; ALERTA: r7 no té cap habitació compatible (massa gran)!
+    ;; Reserva r7 (1 pax): 
+    (compatible r7 h1)
+    (compatible r7 h2)
 
     ;; Calendari de reserves
+    (dies-reserva r1 d4)
     (dies-reserva r1 d5)
     (dies-reserva r1 d6)
-    (dies-reserva r1 d7)
-    (dies-reserva r1 d8)
-    (dies-reserva r1 d9)
-    (dies-reserva r2 d3)
-    (dies-reserva r2 d4)
-    (dies-reserva r2 d5)
-    (dies-reserva r2 d6)
-    (dies-reserva r2 d7)
+    (dies-reserva r2 d1)
+    (dies-reserva r3 d2)
+    (dies-reserva r3 d3)
     (dies-reserva r3 d4)
+    (dies-reserva r4 d3)
+    (dies-reserva r4 d4)
     (dies-reserva r4 d5)
-    (dies-reserva r4 d6)
-    (dies-reserva r4 d7)
-    (dies-reserva r5 d3)
-    (dies-reserva r5 d4)
     (dies-reserva r5 d5)
     (dies-reserva r5 d6)
     (dies-reserva r5 d7)
-    (dies-reserva r6 d2)
+    (dies-reserva r5 d8)
+    (dies-reserva r5 d9)
     (dies-reserva r6 d3)
     (dies-reserva r6 d4)
     (dies-reserva r6 d5)
-    (dies-reserva r6 d6)
-    (dies-reserva r7 d5)
     (dies-reserva r7 d6)
     (dies-reserva r7 d7)
     (dies-reserva r7 d8)
-    (dies-reserva r7 d9)
   )
 
   (:goal (and
