@@ -32,25 +32,22 @@
     (= (persones r3) 3)
 
     ;; Funcions numèriques inicials
-    (= (total-assignades) 0)
-    (= (total-desperdici) 0)
+    (= (total-habitacions-descartades) 0)
+    (= (total-places-descartades) 0)
   )
 
   ;; Goal: volem que totes les reserves estiguin assignades o descartades,
   ;; però a l’extensió 3 només exigim que les assignades estiguin marcades.
   ;; El goal natural és només que no hi hagi inconsistències:
-  (:goal (and 
-            (assignada r1) 
-            (assignada r2)
-            (assignada r3)
+  (:goal (and (forall (?r - reserva) (processada ?r))
          ))
 
   ;; Extensió 3: maximitzar assignacions i minimitzar desperdici
   ;; Prioritat absoluta: assignacions → factor 1000
   ;; Segon criteri: minimitzar desperdici
   (:metric 
-    maximize 
-      (- (* 1000 (total-assignades))
-         (total-desperdici))
+    minimize
+      (+ (* 1000 (total-habitacions-descartades))
+         (total-places-descartades))
   )
 )
