@@ -66,7 +66,7 @@ def executar_metric_ff(domain_path, problem_path, timeout=TIMEOUT_SEGONS):
     
     try:
         proc = subprocess.Popen(
-            [FF_EXECUTABLE, "-o", domain_path, "-f", problem_path],
+            [FF_EXECUTABLE, "-o", domain_path, "-f", problem_path, "-O"],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
         

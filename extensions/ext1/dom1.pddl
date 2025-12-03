@@ -5,7 +5,6 @@
   )
 
   (:predicates 
-    (assignada ?r - reserva)
     (dies-reserva ?r - reserva ?d - dia)
     (ocupada ?h - habitacio ?d - dia ?r - reserva)
     (processada ?r - reserva) ; per saber si ja hem processat la reserva
@@ -14,7 +13,7 @@
   (:functions
     (capacitat ?h - habitacio) 
     (persones ?r - reserva)   
-    (total-assignades)        
+    (total-descartades)        
   )
 
   ;; assigna i incrementa la mètrica
@@ -30,9 +29,7 @@
              (and (dies-reserva ?r ?d) (ocupada ?h ?d ?r2))))
       )
       :effect (and
-        (assignada ?r)
         (processada ?r)                ;; marquem com processada
-        (increase (total-assignades) 1) ;; suemem 1 al total d'assignades
         (forall (?d - dia) 
           (when (dies-reserva ?r ?d) (ocupada ?h ?d ?r)))
       )
@@ -42,8 +39,8 @@
       :parameters (?r - reserva)
       :precondition (not (processada ?r))
       :effect (and 
-        (processada ?r) 
-
+        (processada ?r)
+        (increase (total-descartades) 1) ;; suemem 1 al total de descartades
       )
   )
 )

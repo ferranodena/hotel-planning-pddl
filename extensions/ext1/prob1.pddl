@@ -17,7 +17,7 @@
     (dies-reserva r3 d3) 
     (dies-reserva r3 d4)
 
-    (= (total-assignades) 0)
+    (= (total-descartades) 0)
     
     (= (capacitat h1) 2)
     (= (capacitat h2) 4)
@@ -32,5 +32,5 @@
   (:goal (forall (?r - reserva) (processada ?r)))
 
   (:metric 
-    maximize (total-assignades))
+    minimize (total-descartades))
 )

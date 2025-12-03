@@ -28,7 +28,7 @@ def generar_problema_hotel_ext1(num_reservas, num_habitaciones, num_dias, seed=N
     pddl += "  (:init\n"
     
     # 1. Inicialitzar el comptador de la mètrica
-    pddl += "    (= (total-assignades) 0)\n\n"
+    pddl += "    (= (total-descartades) 0)\n\n"
 
     # 2. Generar capacitats de les habitacions (Fluents)
     pddl += "    ;; Capacitats de les habitacions (1-4 persones)\n"
@@ -70,7 +70,7 @@ def generar_problema_hotel_ext1(num_reservas, num_habitaciones, num_dias, seed=N
 
     # --- Metric ---
     # Maximitzar el valor del fluent total-assignades
-    pddl += "  (:metric maximize (total-assignades))\n"
+    pddl += "  (:metric minimize (total-descartades))\n"
     
     pddl += ")\n"
 
@@ -82,11 +82,7 @@ def generar_suite_escalable():
     """
     # Configuracions: (Nom, Reserves, Habitacions, Dies)
     configuracions = [
-        ("prob0101", 5, 2, 10),
-        ("prob0102", 10, 2, 10),
-        ("prob0103", 15, 2, 10),
-        ("prob0104", 20, 2, 10),
-        ("prob0105", 25, 2, 10),
+        ("prob0105", 25, 15, 15),
     ]
 
 
