@@ -23,7 +23,7 @@ FF_EXECUTABLE    = "./programa/metricff.exe"
 OUTPUT_CSV       = "resultats/ext1/resultats_inteligencia.csv"
 TEMP_DIR         = "./extensions/ext1/temp_exp"
 
-NUM_REPLIQUES = 3 
+NUM_REPLIQUES = 10
 TIMEOUT_SEGONS = 300 # Més temps perquè l'optimització triga més
 
 # CONFIGURACIONS D'EXPERIMENT
@@ -31,12 +31,17 @@ TIMEOUT_SEGONS = 300 # Més temps perquè l'optimització triga més
 # Variem només el conflicte per veure la "Intel·ligència"
 CONFIGURACIONS = [
     # (R, H, D, Conflicte)
-    (20, 6, 30, 0.0),   # Fàcil (Uniforme)
-    (20, 6, 30, 0.2),
-    (20, 6, 30, 0.4),
-    (20, 6, 30, 0.6),
-    (20, 6, 30, 0.8),
-    (20, 6, 30, 1.0),   # Extrem (Tot concentrat)
+    (20, 5, 25, 0.0),   # Fàcil (Uniforme)
+    (20, 5, 25, 0.1),
+    (20, 5, 25, 0.2),
+    (20, 5, 25, 0.3),
+    (20, 5, 25, 0.4),
+    (20, 5, 25, 0.5),
+    (20, 5, 25, 0.6),
+    (20, 5, 25, 0.7),
+    (20, 5, 25, 0.8),
+    (20, 5, 25, 0.9),
+    (20, 5, 25, 1.0),   # Extrem (Tot concentrat)
 ]
 
 # =============================================================================
@@ -64,51 +69,46 @@ def cridar_generador_extern(script_path, output_pddl, r, h, d, conflict):
         return False
 
 def executar_metric_ff(domain_path, problem_path, timeout=TIMEOUT_SEGONS):
-    """Executa FF, mesura temps i parseja assignades vs descartades."""
-    proc = None
+    """Executa FF usant subprocess.run per evitar bloquejos de PIPE."""
     start_time = time.time()
     
     try:
-        # Usem -O per a Metric-FF (Optimització) tot i que per defecte ja ho fa si veu mètrica
-        proc = subprocess.Popen(
-            [FF_EXECUTABLE, "-o", domain_path, "-f", problem_path, "-O"],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        # USEM RUN en lloc de Popen
+        result = subprocess.run(
+            [FF_EXECUTABLE, "-o", domain_path, "-f", problem_path],
+            capture_output=True, # Això captura stdout i stderr
+            text=True,           # Això ho converteix a string automàticament
+            timeout=timeout      # Gestiona el timeout automàticament
         )
         
-        stdout, stderr = proc.communicate(timeout=timeout)
         end_time = time.time()
-        
-        output = stdout + stderr
-        returncode = proc.returncode
+        output = result.stdout + result.stderr
         temps_ms = (end_time - start_time) * 1000
+        returncode = result.returncode
 
-        # --- PARSEJAT AVANÇAT ---
+        # --- PARSEJAT (Igual que abans) ---
         output_lower = output.lower()
         
-        # 1. Comptar Assignades (Èxits)
         n_assignades = output_lower.count("assignar-habitacio")
         if n_assignades == 0: n_assignades = output_lower.count("assignar ")
 
-        # 2. Comptar Descartades (Optimització)
         n_descartades = output_lower.count("descartar-reserva")
         if n_descartades == 0: n_descartades = output_lower.count("descartar ")
 
-        # 3. Detectar si ha trobat solució
-        # En Extensió 1, SEMPRE hauria de trobar solució (perquè pot descartar)
-        # Però si peta per memòria o altres coses, ho marquem.
         found_plan = "found legal plan" in output_lower
         
         if not found_plan:
-            return temps_ms, 0, 0, 1 # Error lògic (no pla)
+            return temps_ms, 0, 0, 1 
             
-        return temps_ms, n_assignades, n_descartades, 0 # Èxit (Codi 0)
+        return temps_ms, n_assignades, n_descartades, 0 
 
     except subprocess.TimeoutExpired:
-        if proc: proc.kill(); proc.communicate()
-        return None, 0, 0, -1 # Timeout
+        print("    [TIMEOUT] El procés ha trigat massa.")
+        return None, 0, 0, -1 
+        
     except Exception as e:
-        if proc: proc.kill()
-        return None, 0, 0, -2 # Error sistema
+        print(f"    [ERROR SISTEMA] {e}")
+        return None, 0, 0, -2 
 
 def main():
     crear_directori(TEMP_DIR)

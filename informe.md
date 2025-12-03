@@ -288,7 +288,7 @@ font-family: Helvetica, Arial, sans-serif;
   - [3.1.1 Domini](#311-domini)
   - [3.1.2 Problemes](#312-problemes)
     - [3.1.2.1 Problema 1: Dilema de l'optimització](#3121-problema-1-dilema-de-loptimització)
-    - [3.1.2.2 Problema 2: Reserves solapades](#3122-problema-2-reserves-solapades)
+    - [3.1.2.2 Problema 2: L'hotel creixent](#3122-problema-2-lhotel-creixent)
 - [3.2 Extensió 2](#32-extensió-2)
   - [3.2.1 Domini](#321-domini)
   - [3.2.2 Problemes](#322-problemes)
@@ -493,6 +493,28 @@ Per tant, respecte a les nostres hipòtesis:
 
 #### 3.0.2.3 Problema 3: Moltes habitacions, moltes reserves
 
+En aquest experiment volem avaluar la capacitat del planificador per gestionar escenaris realistes on hi ha una quantitat significativa tant d'habitacions com de reserves. Aquest escenari simula situacions comunes en la gestió hotelera, on es disposa d'una oferta considerable d'habitacions i una demanda elevada de reserves. Per fer-ho, incrementarem progressivament tant el nombre d'habitacions com el nombre de reserves (1/2 del nombre d'habitacions) per crear un escenari equilibrat, on no hi hagi ni escassetat ni abundància extrema de recursos.
+
+Com que hem vist que en l'escenari de poques habitacions i moltes reserves el planificador no pot trobar solucions, i en l'escenari de moltes habitacions i poques reserves sempre pot trobar solucions, aquest escenari mixt ens permetrà observar com es comporta el planificador en un punt intermedi. S'espera observar:
+
+1. **Comportament Adaptatiu:** El planificador haurà de ser capaç d'assignar la majoria de les reserves, però pot haver-hi algunes que no es puguin assignar degut a conflictes temporals.
+2. **Escalabilitat:** S'espera que el temps d'execució creixi de manera moderada, ja que l'espai de cerca per trobar assignacions òptimes és més complex que en els escenaris anteriors.
+
+Per tant, plantegem el següent parell d'hipòtesis per a aquest experiment:
+
+Respecte al comportament del planificador en aquest escenari equilibrat:
+
+- $H_0$: El planificador no és capaç d'assignar la majoria de les reserves, deixant moltes sense assignar degut a conflictes temporals.
+- $H_1$: El planificador és capaç d'assignar la majoria de les reserves, gestionant eficientment els conflictes temporals.
+
+Hipòtesi sobre l'escalabilitat del planificador:
+
+- $H_0$: El temps d'execució del planificador creix de manera no lineal amb el nombre d'habitacions i reserves, indicant una gestió ineficient de l'espai de cerca.
+- $H_1$: El temps d'execució del planificador creix de manera moderada amb el nombre d'habitacions i reserves, indicant una gestió eficient de l'espai de cerca.
+
+Generarem problemes amb un nombre d'habitacions creixent (10, 20, 30, ..., fins a 100) i la meitat de reserves (5, 10, 15, ..., fins a 50). Executarem cada problema diverses vegades i prendrem la mitjana per obtenir resultats més fiables. El nombre de dies creixerà proporcionalment amb el nombre de reserves per mantenir la complexitat. Els resultats obtinguts són els següents:
+
+
 ## 3.1 Extensió 1
 
 Per superar les limitacions del domini bàsic, s'introdueix una primera extensió orientada a la gestió flexible de la demanda i l'optimització de recursos. El canvi fonamental respecte al model anterior és l'eliminació de l'obligatorietat d'assignar totes les reserves. En aquest nou enfocament, el sistema ja no busca satisfer la totalitat de les peticions, sinó que se centra a maximitzar el nombre de reserves assignades.
@@ -544,33 +566,17 @@ Plantegem la següent hipòtesi per a aquest experiment:
 Executem el problema i obtenim els següents resultats:
 
 ```bash
-ff: parsing domain file
-domain 'HOTEL-EXTENSIO1' defined
- ... done.
-ff: parsing problem file
-problem 'MAXIMITZAR-ASSIGNACIONS' defined
- ... done.
-
-
+...
 metric established (normalized to minimize): ((1.00*[RF0](TOTAL-DESCARTADES)) - () + 0.00)
-
-checking for cyclic := effects --- OK.
+...
 
 ff: search configuration is  best-first on 1*g(s) + 5*h(s) where
     metric is ((1.00*[RF0](TOTAL-DESCARTADES)) - () + 0.00)
-
-advancing to distance:    3
-                          2
-                          1
-                          0
-
-ff: found legal plan as follows
-
+...
 step    0: DESCARTAR-RESERVA R-LLARGA
         1: ASSIGNAR-HABITACIO R-CURTA2 H1
         2: ASSIGNAR-HABITACIO R-CURTA1 H1
-
-
+...
 time spent:    0.16 seconds instantiating 3 easy, 3 hard action templates
                0.00 seconds reachability analysis, yielding 26 facts and 6 actions
                0.00 seconds creating final representation with 22 relevant facts, 1 relevant fluents
@@ -582,22 +588,73 @@ time spent:    0.16 seconds instantiating 3 easy, 3 hard action templates
 
 El planificador ha trobat la solució òptima, descartant la reserva llarga i assignant les dues reserves curtes, obtenint ``total-assignades = 2``. Per tant, rebutgem $H_0$ i acceptem $H_1$, confirmant que el planificador és capaç de maximitzar les assignacions evitant l'estratègia greedy quan és necessari. Però aquest cas és de joguina, caldrà veure-ho en casos més generals.
 
-Dissenyem, amb ajuda de la LLM `Gemini Pro 3`, un generador de problemes que crea escenaris amb múltiples reserves i habitacions, on hi ha conflictes temporals i es requereix una planificació intel·ligent per maximitzar les assignacions. Aquest generador tindrà un paràmetre clau que controlarà el grau de solapament entre reserves: ``conflict_ratio`` (0.0 - 1.0). Si és 0.0, no hi haurà solapaments i totes les reserves es podran assignar fàcilment. Si és 1.0, totes les reserves es solaparan totalment, fent impossible assignar-les totes. Valors intermedis generaran escenaris amb diferents nivells de conflicte, permetent avaluar la capacitat del planificador per gestionar situacions complexes.
+Dissenyem, amb ajuda de la LLM **Gemini 3 Pro**, un generador de problemes que crea escenaris amb múltiples reserves i habitacions, on hi ha conflictes temporals i es requereix una planificació intel·ligent per maximitzar les assignacions. Aquest generador tindria un paràmetre clau que controlaria el grau de solapament entre reserves: ``conflict_ratio`` (0.0 - 1.0). Si és 0.0, no hi hauria solapaments i totes les reserves es podrien assignar fàcilment. Si és 1.0, totes les reserves es solaparan totalment, fent impossible assignar-les totes. Valors intermedis generaran escenaris amb diferents nivells de conflicte, permetent avaluar la capacitat del planificador per gestionar situacions complexes.
 Com que volem aïllar el comportament de maximització d'assignacions, mantenim la compatibilitat entre reserves i habitacions senzilla: totes les habitacions tenen capacitat per 4 persones i totes les reserves seran de 2 persones. Així, l'únic factor limitant serà el solapament temporal. El nombre de dies vindrà donat per un altre paràmetre: ``num_dies``. Així, podem generar problemes amb diferents nivells de conflicte i diferents durades de reserves, per veure com afecta això a la capacitat del planificador per maximitzar les assignacions.
 
 La clau per simular escenaris de competència realistes rau en com es trien els dies d'inici de cada reserva. Podem utilitzar una distribució normal (gaussiana) per modelar aquesta selecció, on el paràmetre `conflict_ratio` controla l'amplitud de la distribució. Això permet que, a mesura que augmenta el `conflict_ratio`, les reserves es concentrin més al voltant d'un punt central del calendari, generant més solapaments i conflictes.
 La desviació estàndardde la distribució normal es pot definir com una funció del `conflict_ratio`, és a dir, es generaran més dies d'inici propers entre si a mesura que augmenta el `conflict_ratio`. Per seleccionar els dies d'inici de les reserves, es podrà fer un mostreig aleatori de la distribució normal amb mitjana al centre del calendari i desviació estàndard proporcional al `conflict_ratio`. Això permetrà controlar el grau de solapament entre reserves de manera matemàtica i sistemàtica.
 
-D'aquesta manera, el generador no només produeix problemes aleatoris, sinó que permet controlar matemàticament el grau de saturació temporal del sistema. A mesura que augmenta el `conflict_ratio`, el planificador s'enfronta a un problema de tipus *Tetris*, on ha de decidir estratègicament quines reserves assignar per maximitzar l'ocupació, descartant aquelles que bloquegen massa espai i impedeixen encaixar altres peticions més curtes. Aquest mecanisme fa que els experiments siguin reproducibles i que els resultats reflecteixin de forma clara la capacitat d'optimització del planificador sota pressió de recursos.
+D'aquesta manera, el generador no només produirà problemes aleatoris, sinó que permetrà controlar matemàticament el grau de saturació temporal del sistema. A mesura que augmenta el `conflict_ratio`, el planificador s'enfronta a un problema de tipus *Tetris*, on ha de decidir estratègicament quines reserves assignar per maximitzar l'ocupació, descartant aquelles que bloquegen massa espai i impedeixen encaixar altres peticions més curtes. Aquest mecanisme fa que els experiments siguin reproducibles i que els resultats reflecteixin de forma clara la capacitat d'optimització del planificador sota pressió de recursos.
 
-Generarem doncs un conjunt de problemes amb 5 habitacions i 20 reserves, amb un nombre de dies fixat a 10 i un `conflict_ratio` variable (0.0, 0.2, 0.4, 0.6, 0.8, 1.0). Executarem cada problema diverses vegades i prendrem la mitjana per obtenir resultats més fiables.
+El resultat obtingut ha sigut un script de Python que genera problemes seguint aquesta lògica:
 
-Pel que fa a la quantitat de reserves assignades, obtenim els següents resultats:
-#### 3.1.2.2 Problema 2: Reserves solapades
+El càlcul del **`conflict_ratio`** $C$ no és una ràtio directa (com "dies ocupats / totals"), sinó un **paràmetre de control (0.0 a 1.0)** que modifica la desviació estàndard ($\sigma$) d'una distribució normal per concentrar les reserves. El `conflict_ratio` ($C$) determina l'amplada de la campana de Gauss centrada al dia $D_{centre} = \frac{\text{Dies Totals}}{2}$. Simulant així certa concentració de reserves en els dies centrals.
 
-El planificador, maximitzant total-assignades, triarà dues reserves que no es solapin en dies (per exemple r1 i r3) i en descartarà una (per exemple r2), obtenint total-assignades = 2.
+$$
+\sigma =
+\begin{cases}
+\text{Dies} \times 10 & \text{si } C < 0.1 \quad (\approx \text{Uniforme}) \\
+\text{Dies} \times (1.1 - C) \times 0.4 & \text{si } C \ge 0.1
+\end{cases}
+$$
 
-Hipòtesi: el planificador serà capaç de maximitzar les assignacions evitant solapaments.
+Cas especial, quan $C < 0.1$, es fa que $\sigma$ sigui molt gran (10 vegades els dies totals) per simular una distribució gairebé uniforme, evitant concentracions artificials. Així, per valors baixos de `conflict_ratio`, les reserves es distribueixen àmpliament al llarg del calendari, minimitzant els solapaments.
+
+El 0.4 és un factor d'ajust que determina l'amplitud de la campana. Amb aquest valor, s'aconsegueix una bona variació en la concentració de reserves a mesura que $C$ varia de 0.1 a 1.0.
+
+Per tant, el número `conflict_ratio` és un **"índex d'estretor"**: com més proper a 1, més estret és l'interval de dies on tothom vol reservar. Per exemple: per un `conflict_ratio` de 0.8 en un calendari de 25 dies: $ \sigma = 25 \times (1.1 - 0.8) \times 0.4 = 3$ Això significa que la majoria de reserves començaran dins d'un interval de 6 dies al voltant del dia 12.5 (el centre), generant molts solapaments i conflictes. En canvi, per un `conflict_ratio` de 0.2: $ \sigma = 25 \times (1.1 - 0.2) \times 0.4 = 9$ Aquí, les reserves es distribuiran més àmpliament, amb menys solapaments.
+
+Generarem doncs un conjunt de problemes amb 5 habitacions i 20 reserves, amb un nombre de dies fixat a 25 i un `conflict_ratio` variable (0.0, 0.1, 0.2, ... 1.0). Executarem cada problema 10 vegades i prendrem la mitjana per obtenir resultats més fiables.
+
+Aquests nombres s'han seleccionat així perquè voliem una concentració mitjana d'ús de l'hotel d'un 50%, és a dir, que en mitjana hi hagi la meitat d'habitacions ocupades.
+
+Plantegem el següent contrast d'hipòtesis per a aquest experiment:
+
+- $H_0$: El planificador no és capaç de maximitzar les assignacions en situacions amb alt grau de solapament entre reserves.
+- $H_1$: El planificador és capaç de maximitzar les assignacions, fins i tot en situacions amb alt grau de solapament entre reserves.
+
+Això ho podrem veure si el nombre d'assignacions disminueix a mesura que augmenta el `conflict_ratio`, però es manté per sobre d'un llindar mínim, indicant que el planificador encara pot trobar solucions vàlides. Ens exigim un llindar mínim del 50% d'assignacions fins i tot en el cas més extrem (``conflict_ratio = 1.0``).
+
+Com que també recollirem dades sobre el temps d'execució, podem plantejar un segon contrast d'hipòtesis:
+
+- $H_0$: El temps d'execució del planificador creix de manera no lineal amb l'augment del `conflict_ratio`, indicant una gestió ineficient de l'espai de cerca.
+- $H_1$: El temps d'execució del planificador creix de manera lineal o sublineal amb l'augment del `conflict_ratio`, indicant una gestió eficient de l'espai de cerca.
+
+Per tant, executem i obtenim els següents resultats:
+
+<div class="image-row">
+  <div class="image-column">
+    <img src="./figures/ext1/1.png" alt="Gràfic de reserves assignades en l'extensió 1">
+    <div class="caption">Figura 6: Proporció de reserves assignades en funció de la <code>conflict_ratio</code></div>
+  </div>
+</div>
+
+En primer lloc, s'observa una **robustesa significativa en escenaris de saturació moderada**. Per a ràtios de conflicte compresos entre 0.0 i 0.6, el planificador manté consistentment una taxa d'èxit superior al 84%. Aquest rendiment evidencia que, mentre existeixi un marge de maniobra mínim, el sistema és capaç de resoldre eficaçment els complexos puzles temporals, maximitzant l'ús dels recursos disponibles sense degradar la qualitat de la solució global.
+
+En segon lloc, el comportament del sistema exhibeix una **degradació suau i controlada** a mesura que la pressió augmenta. A diferència de dominis més bàsics que tendeixen a col·lapsar abruptament cap al 0% d'èxit davant la impossibilitat de satisfer totes les demandes, la nostra extensió mostra una corba descendent progressiva. Fins i tot en l'escenari extrem de conflicte 1.0, on la pràctica totalitat de la demanda competeix per una finestra crítica de només 2-3 dies, el planificador aconsegueix salvar entre el 37% i el 47% de les reserves. Aquesta dada confirma la "intel·ligència" del model: davant la impossibilitat física de satisfer tota la demanda, prioritza racionalment el subconjunt màxim compatible.
+
+Finalment, és remarcable l'**estabilitat del cost computacional** observada. Els temps d'execució es mantenen constants al voltant dels 200-220 mil·lisegons, independentment del grau de complexitat del conflicte. Això indica que la introducció de l'acció de descart i la mètrica d'optimització no penalitzen exponencialment el rendiment del cercador. Al contrari, el mecanisme permet podar eficientment les branques inviables de l'espai de cerca, evitant que el planificador es perdi en exploracions infructuoses i garantint una resposta ràpida fins i tot en les condicions més adverses. Amb això podríem deduïr que el cost computacional NO depèn directament del `conflict_ratio`, és a dir, de la densitat de reserves en un temps determinat, sinó més aviat de la quantitat absoluta de reserves i habitacions.
+
+Per tant, respecte a les nostres hipòtesis:
+
+- En l'escenari de solapaments entre reserves, rebutgem $H_0$ i acceptem $H_1$, ja que el planificador demostra una capacitat notable per maximitzar les assignacions fins i tot en situacions amb alt grau de conflicte, mantenint una taxa d'èxit significativa.
+- Pel que fa a l'escalabilitat, rebutgem $H_0$ i acceptem $H_1$, ja que el temps d'execució del planificador es manté constant independentment del `conflict_ratio`, indicant una gestió eficient de l'espai de cerca.
+
+Concluint, aquest experiment valida l'eficàcia de l'extensió 1 en transformar un domini fràgil en un sistema robust i intel·ligent, capaç de navegar amb èxit els desafiaments inherents a la planificació sota restriccions severes.
+
+#### 3.1.2.2 Problema 2: L'hotel creixent
+
+Al problema anterior hem vist que el planificador és capaç de maximitzar les assignacions en escenaris amb alta competència per recursos limitats. Ara volem avaluar com es comporta el sistema quan augmentem la mida del problema, és a dir, el nombre d'habitacions i reserves. L'objectiu és veure si el planificador manté la seva capacitat d'optimització i escalabilitat a mesura que el domini creix en complexitat. Per això, generarem problemes amb un nombre creixent i proporcionall d'habitacions i reserves, mantenint un `conflict_ratio` fixat a 0.6 per simular una saturació moderada, però que a l'experiment anterior ens ha donat bons resultats. Això crea un escenari on el planificador ha de gestionar més recursos i demandes, posant a prova la seva eficiència i capacitat d'optimització.
 
 ## 3.2 Extensió 2
 

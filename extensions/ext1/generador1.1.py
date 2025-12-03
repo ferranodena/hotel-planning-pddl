@@ -1,20 +1,20 @@
 import random
 import argparse
-import numpy as np # Necessitaràs numpy per a distribucions millors
+import numpy as np
+import os
+import sys
 
 def generar_problema_ext1_conflictiu(num_reservas, num_habitaciones, num_dias, conflict_ratio, seed=None):
     """
     Genera un problema on les reserves es concentren temporalment segons 'conflict_ratio'.
-    
-    conflict_ratio (0.0 - 1.0):
-       0.0 -> Distribució Uniforme (Escampades per tot el calendari).
-       1.0 -> Distribució Molt Concentrada (Totes volen els mateixos dies centrals).
     """
     if seed is not None:
         random.seed(seed)
         np.random.seed(seed)
 
-    pddl = f"(define (problem ext1_conflicte_{int(conflict_ratio*100)})\n"
+    prob_name = f"ext1_conflicte_{int(conflict_ratio*100)}"
+    
+    pddl = f"(define (problem {prob_name})\n"
     pddl += "  (:domain hotel-extensio1)\n"
     pddl += "  (:requirements :typing :negative-preconditions :adl :fluents)\n\n"
     
@@ -28,49 +28,35 @@ def generar_problema_ext1_conflictiu(num_reservas, num_habitaciones, num_dias, c
     pddl += "  (:init\n"
     pddl += "    (= (total-descartades) 0)\n\n"
 
-    # 1. Capacitats Habitacions (Fixes o Aleatòries)
-    # Per aïllar l'efecte del conflicte temporal, fem que totes siguin iguals o similars
+    # 1. Capacitats Habitacions (Fixes a 4)
     for i in range(num_habitaciones):
-        pddl += f"    (= (capacitat h{i+1}) 4)\n" # Totes grans per evitar descarts per capacitat
+        pddl += f"    (= (capacitat h{i+1}) 4)\n"
     pddl += "\n"
 
-    # 2. Persones (Totes compatibles)
+    # 2. Persones (Fixes a 2)
     for i in range(num_reservas):
-        pddl += f"    (= (persones r{i+1}) 2)\n" # Totes caben arreu
+        pddl += f"    (= (persones r{i+1}) 2)\n"
     pddl += "\n"
 
     # 3. GENERACIÓ DE DIES (El cor del conflicte)
     center_day = num_dias / 2
     
-    # Desviació estàndard:
-    # Si ratio = 0 (uniforme), sigma és infinit (o molt gran).
-    # Si ratio = 1 (concentrat), sigma és molt petit (ex: 2 dies).
-    # Formula heurística:
     if conflict_ratio < 0.1:
-        sigma = num_dias * 10 # Pràcticament uniforme
+        sigma = num_dias * 10 
     else:
-        # Com més ratio, menys sigma. 
-        # Ratio 1.0 -> sigma = num_dias * 0.05 (molt estret)
-        # Ratio 0.5 -> sigma = num_dias * 0.25
         factor = (1.1 - conflict_ratio) * 0.4 
         sigma = num_dias * factor
 
     for i in range(num_reservas):
         r = f"r{i+1}"
-        
-        # Durada aleatòria (però curta per permetre Tetris)
         durada = random.randint(2, 5) 
         
-        # Triar dia d'inici basat en la distribució
         if conflict_ratio < 0.05:
             start_day = random.randint(1, num_dias - durada + 1)
         else:
-            # Mostreig Gaussià centrat al mig del calendari
             val = int(np.random.normal(center_day, sigma))
-            # Assegurar límits
             start_day = max(1, min(num_dias - durada + 1, val))
         
-        # Generar predicats
         for j in range(durada):
             d_idx = start_day + j
             if 1 <= d_idx <= num_dias:
@@ -85,9 +71,8 @@ def generar_problema_ext1_conflictiu(num_reservas, num_habitaciones, num_dias, c
 
 def generar_suite_escalable():
     """
-    Genera 5 problemes amb dificultat incremental.
+    Genera la suite manualment si no hi ha arguments.
     """
-    # Configuracions: (Nom, Reserves, Habitacions, Dies , Conflict Ratio)
     configuracions = [
         ("prob01001", 25, 15, 15, 0.0),
         ("prob01002", 25, 15, 15, 0.2),
@@ -96,18 +81,42 @@ def generar_suite_escalable():
         ("prob01005", 25, 15, 15, 0.8),
         ("prob01006", 25, 15, 15, 1.0),
     ]
-
+    
+    out_dir = "./extensions/ext1/1.1/"
+    if not os.path.exists(out_dir): os.makedirs(out_dir)
 
     print("Generant suite de problemes...")
     for conf in configuracions:
         nom, r, h, d, ratio = conf
-        nom_fitxer = f"./extensions/ext1/1.1/{nom}.pddl"
-        
-        contingut = generar_problema_ext1_conflictiu(r, h, d, seed=42, conflict_ratio=ratio)
-        
+        nom_fitxer = f"{out_dir}{nom}.pddl"
+        contingut = generar_problema_ext1_conflictiu(r, h, d, conflict_ratio=ratio, seed=42)
         with open(nom_fitxer, "w") as f:
             f.write(contingut)
-        
-        print(f" -> Generat {nom_fitxer}: {r} res, {h} hab, {d} dies.")
+        print(f" -> Generat {nom_fitxer}")
 
-generar_suite_escalable()
+if __name__ == '__main__':
+    # AQUEST ÉS EL BLOC QUE FALTAVA PERQUÈ L'ORQUESTRADOR FUNCIONI
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output", help="Fitxer de sortida")
+    parser.add_argument("--reservas", type=int, default=20)
+    parser.add_argument("--habitaciones", type=int, default=5)
+    parser.add_argument("--dias", type=int, default=30)
+    parser.add_argument("--conflict", type=float, default=0.5)
+    parser.add_argument("--seed", type=int, default=None) # Opcional
+
+    args = parser.parse_args()
+
+    # Si es passa --output, estem en mode "Orquestrador"
+    if args.output:
+        content = generar_problema_ext1_conflictiu(
+            args.reservas, args.habitaciones, args.dias, 
+            conflict_ratio=args.conflict, seed=args.seed
+        )
+        # Assegurar directori
+        os.makedirs(os.path.dirname(args.output), exist_ok=True)
+        
+        with open(args.output, "w") as f:
+            f.write(content)
+    else:
+        # Si no, mode "Manual"
+        generar_suite_escalable()
