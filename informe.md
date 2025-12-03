@@ -283,6 +283,7 @@ font-family: Helvetica, Arial, sans-serif;
   - [3.0.2 Problemes](#302-problemes)
     - [3.0.2.1 Problema 1: Poques habitacions, moltes reserves](#3021-problema-1-poques-habitacions-moltes-reserves)
     - [3.0.2.2 Problema 2: Moltes habitacions, poques reserves](#3022-problema-2-moltes-habitacions-poques-reserves)
+    - [3.0.2.3 Problema 3: Moltes habitacions, moltes reserves](#3023-problema-3-moltes-habitacions-moltes-reserves)
 - [3.1 Extensió 1](#31-extensió-1)
   - [3.1.1 Domini](#311-domini)
   - [3.1.2 Problemes](#312-problemes)
@@ -326,26 +327,26 @@ L'extensió bàsica del domini `hotelbasic` implementa la funcionalitat fonament
 
 El domini `hotelbasic` modela un problema d'assignació de recursos (scheduling) on un conjunt de peticions (`reserva`) han de ser assignades a recursos limitats (`habitacio`) durant uns intervals de temps específics (`dia`).
 
-1. Tipus (`:types`)
+1. Tipus (**`:types`**)
    El domini defineix tres entitats bàsiques que estructuren el problema:
 
    - **`reserva`**: Representa una petició d'allotjament que ha de ser satisfeta.
    - **`habitacio`**: Representa el recurs físic (amb capacitat unitària) on s'allotgen les reserves.
    -**`dia`**: Representa la unitat de temps discreta.
 
-2. Predicats (`:predicates`)
+2. Predicats (**`:predicates`**)
    Els predicats defineixen l'estat del món i les relacions entre els objectes:
 
    - **Predicats Estàtics (Dades d'entrada):**
-     - `(dies-reserva ?r - reserva ?d - dia)`: Defineix l'interval temporal de cada reserva. Indica que la reserva `?r` requereix ocupació durant el dia `?d`.
-     - `(compatible ?r - reserva ?h - habitacio)`: Restricció de domini que indica si l'habitació `?h` és vàlida per a la reserva `?r` (per exemple, per capacitat de persones).
+     - `(dies-reserva ?r - reserva ?d - dia)`: Defineix l'interval temporal de cada reserva. Indica que la reserva `?r` requereix ocupació durant el dia `?d`. Aquest predicat es defineix per a cada dia dins de l'interval de la reserva.
+     - `(compatible ?r - reserva ?h - habitacio)`: Restricció de domini que indica si l'habitació `?h` és vàlida per a la reserva `?r` (per exemple, per capacitat de persones). Això ho hem fet perquè **les reserves només es puguin assignar a habitacions compatibles.**
 
    - **Predicats Dinàmics (Estat del sistema):**
       - `(assignada ?r - reserva)`: Indica que la reserva `?r` ja ha estat processada i té una habitació assignada.
-      - `(ocupada ?h - habitacio ?d - dia ?r - reserva)`: Matriu d'ocupació que registra que l'habitació `?h` està bloquejada el dia `?d` per la reserva `?r`.
+      - `(ocupada ?h - habitacio ?d - dia ?r - reserva)`: Indica que l'habitació `?h` està ocupada pel menys per la reserva `?r` durant el dia `?d`. Aquest predicat s'actualitza dinàmicament a mesura que es processen les assignacions, ja que necessitem per garantir que no hi hagi solapaments.
 
-3. Accions (`:action`)
-L'única acció del sistema és **`assignar-habitacio`**, que formalitza la decisió d'ubicar una reserva.
+3. Accions (**`:action`**)
+L'única acció del sistema en la seva implementació bàsica és **`assignar-habitacio`**, que formalitza la decisió d'ubicar una reserva.
 
 - **Paràmetres:** Una reserva `?r` i una habitació `?h`.
 - **Precondicions:** Per poder executar l'acció, s'han de complir tres condicions simultànies:
@@ -359,7 +360,7 @@ L'única acció del sistema és **`assignar-habitacio`**, que formalitza la deci
              (and (dies-reserva ?r ?d) (ocupada ?h ?d ?r2))))
         ```
 
-        Això verifica que, per a tots els dies que demana la reserva `?r`, l'habitació `?h` no estigui ocupada per cap altra reserva `?r2`. És el nucli de la lògica de recursos.
+        La traducció d'aquesta precondició és: *si no existeix cap dia `?d` i cap altra reserva `?r2` tal que `?r` demani el dia `?d` i l'habitació `?h` estigui ocupada per `?r2` en aquest dia*. Això verifica que, per a tots els dies que demana la reserva `?r`, l'habitació `?h` no estigui ocupada per cap altra reserva `?r2`. És el nucli de la lògica de recursos. És el que garanteix que no hi hagi solapaments en l'assignació d'habitacions, per aixó calia incloure aquest predicat dinàmicament actualitzat.
 
 - **Efectes:** Si s'executa, l'estat canvia:
 
@@ -370,13 +371,15 @@ L'única acció del sistema és **`assignar-habitacio`**, que formalitza la deci
         (forall (?d - dia) (when (dies-reserva ?r ?d) (ocupada ?h ?d ?r)))
         ```
   
-        Per a cada dia `?d` que forma part de la reserva, es marca l'habitació `?h` com a ocupada.
+        Per a cada dia `?d` que forma part de la reserva, es marca l'habitació `?h` com a ocupada. L'ús del `forall` és **fonamental**, perquè cal actualitzar l'estat per a tots els dies de la reserva. L'ús del condicional amb `when` permet actualitzar l'estat de manera eficient, bloquejant l'habitació només durant els dies pertinents.
+
+D'aquesta manera, el domini bàsic estableix les regles fonamentals per a l'assignació d'habitacions a reserves, gestionant les restriccions de compatibilitat i no-solapament temporal. Aquest marc servirà com a base per a les extensions posteriors, on s'afegiran funcionalitats més avançades per millorar la flexibilitat i l'eficiència del sistema de planificació.
 
 ### 3.0.2 Problemes
 
 #### 3.0.2.1 Problema 1: Poques habitacions, moltes reserves
 
-En aquest experiment volem avaluar la capacitat del planificador per prioritzar i seleccionar el millor subconjunt de reserves quan els recursos són extremadament limitats. Per fer-ho, mantindrem fix el nombre d'habitacions (``n=2``) i incrementarem progressivament el nombre de reserves candidates (5, 10, 15, 20...). Això força el sistema a gestionar un escenari d'alta competència on la majoria de reserves s'han de descartar. S'espera observar:
+En aquest experiment volem avaluar la capacitat del planificador per prioritzar i seleccionar el millor subconjunt de reserves quan els recursos són extremadament limitats. Per fer-ho, mantindrem fix el nombre d'habitacions (``n=2``) i incrementarem progressivament el nombre de reserves candidates (5, 10, 15, 20...). Això força el sistema a gestionar un escenari d'alta competència on la gran majoria de reserves, o totes, s'han de descartar. S'espera observar:
 
 1. **Comportament Intel·ligent:** El planificador haurà de triar les combinacions de reserves que maximitzin l'ocupació total (evitant forats temporals), en lloc d'agafar simplement les primeres de la llista.
 2. **Escalabilitat:** S'espera un creixement no lineal (ràpid) del temps d'execució, ja que l'espai de cerca per trobar la combinació òptima creix combinatorialment a mesura que afegim més reserves solapades."
@@ -391,7 +394,7 @@ Respecte al comportament del planificador en aquest escenari d'alta competència
 Hipòtesi sobre l'escalabilitat del planificador:
 
 - $H_0$: El temps d'execució del planificador creix linealment amb el nombre de reserves, indicant una gestió eficient de l'espai de cerca.
-- $H_1_a$: El temps d'execució del planificador creix de manera no lineal (ràpid) amb el nombre de reserves, indicant un augment combinatorial de l'espai de cerca.
+- $H_1$: El temps d'execució del planificador creix de manera no lineal (ràpid) amb el nombre de reserves, indicant un augment combinatorial de l'espai de cerca.
 
 Generem doncs diversos problemes amb 2 habitacions i un nombre creixent de reserves (1, 2, .... fins a 10) amb el nostre generador de problemes. Provem d'executar-los amb el planificador i mesurem el temps d'execució i les habitacions assignades amb èxit per a cada cas. Generem la quantitat de reserves de manera aleatòria completament, per la qual cosa els resultats poden variar lleugerament entre execucions. Executem cada problema diverses vegades i prenem la mitjana per obtenir resultats més fiables. Com que l'assignació és greedy, esperem que el nombre d'assignacions sigui proper al màxim possible (2 habitacions * nombre de reserves que caben sense solapament), però lògicament aquests casos seran difícils en termes generals exactament degut a l'atzar en la generació de reserves. Per tant esperem que el nombre d'assignacions sigui baix, i que hi hagi molts conflictes entre reserves, per tant que el planificador no convergeixi. Tot i així, el temps d'execució hauria de ser creixent, ja que el planificador haurà d'explorar moltes possibilitats per trobar la millor assignació possible, tot i que aquesta no sigui possible en aquest domini.
 
@@ -404,6 +407,9 @@ Pel que fa a la quantitat de reserves assignades, obtenim els següents resultat
   </div>
 </div>
 
+La fiabilitat correspon a la proporció de problemes que el planificador prova de resoldre sense abortar des d'un inici i la demanda satisfeta correspon a la proporció de problemes on totes les reserves han pogut ser assignades. Un problema només pot tenir dos outputs, o bé totes les reserves són assignades (èxit total) o bé no es pot assignar cap (fracàs total). Per tant, en aquest domini bàsic no hi ha solucions parcials.
+Això és així perquè en aquest domini bàsic no hi ha cap mecanisme per descartar reserves o relaxar restriccions, per tant en situacions de saturació el planificador no pot trobar solucions parcials i es veu obligat a abortar.
+
 Pel que fa al temps d'execució, obtenim els següents resultats:
 
 <div class="image-row">
@@ -413,16 +419,20 @@ Pel que fa al temps d'execució, obtenim els següents resultats:
   </div>
 </div>
 
-En primer lloc, l'anàlisi del temps de computació mostra un comportament aparentment estable. Tal com s'observa en el gràfic d'escalabilitat, el temps mitjà d'execució es manté constant al voltant dels 100 ms, independentment de la mida del problema (des d'una sola reserva fins a deu). Aquesta constància, lluny d'indicar una eficiència algorítmica en la resolució de problemes complexos, denota una fallada prematura. En situacions de saturació *on el nombre de reserves supera la capacitat disponible*, el planificador no inverteix temps a cercar solucions complexes perquè l'espai de cerca es tanca ràpidament. El sistema detecta la impossibilitat de satisfer totes les restriccions rígides del domini bàsic i conclou l'execució amb un veredicte d'insolubilitat (`unsolvable`) de manera gairebé immediata. Per tant, la latència baixa i constant no reflecteix escalabilitat, sinó la incapacitat del model per gestionar el conflicte.
+En primer lloc, l'anàlisi del temps de computació mostra un comportament aparentment estable. Tal com s'observa en el gràfic d'escalabilitat, el temps mitjà d'execució es manté constant al voltant dels 90 ms, independentment de la mida del problema. Aquesta constància, lluny d'indicar una eficiència algorítmica en la resolució de problemes complexos, denota una fallada prematura. En situacions de saturació *on el nombre de reserves supera àmpliament la capacitat disponible*, el planificador no inverteix temps a cercar solucions complexes perquè l'espai de cerca es tanca ràpidament. El sistema detecta la impossibilitat de satisfer totes les restriccions rígides del domini bàsic i conclou l'execució amb un veredicte d'insolubilitat de manera gairebé immediata. Per tant, la latència baixa i constant no reflecteix escalabilitat, sinó la incapacitat del model per gestionar el conflicte.
+
+Podem destacar però els casos de 2 i 4 reserves, on el temps d'execució no és superior i sí que aconsegueix assignar un nombre reduït d'habitacions. Això es deu a que en aquests casos el planificador és capaç de trobar una assignació vàlida en 6/10 i 1/10 casos respectivament, i per tant ha d'invertir més temps en explorar l'espai de cerca. En aquests casos, el planificador encara pot trobar solucions, però a mesura que la càrrega augmenta, la probabilitat de trobar una assignació vàlida cau dràsticament, i el sistema opta per abortar ràpidament.
 
 Aquesta interpretació es confirma en analitzar la degradació del servei. El gràfic comparatiu entre estabilitat i capacitat  evidencia un col·lapse abrupte del sistema. Amb una càrrega baixa (1 reserva), el sistema presenta una fiabilitat elevada (~80%) i satisfà una part significativa de la demanda. No obstant això, la fiabilitat cau dràsticament en augmentar la càrrega a 2 i 3 reserves, fins a arribar a un punt de ruptura a partir de les 4 reserves, on la taxa d'èxit es desploma al 0%.
 
-Aquest comportament demostra que el domini bàsic manca de mecanismes de flexibilitat. En absència d'accions que permetin descartar reserves o relaxar restriccions, qualsevol instància on la demanda superi l'oferta mínima d'habitacions esdevé irresoluble. En conseqüència, el planificador no degrada el seu rendiment progressivament (oferint solucions parcials), sinó que deixa de funcionar completament, confirmant la necessitat crítica d'incorporar extensions mètriques i accions de descart per dotar el sistema de robustesa en escenaris reals d'alta demanda.
+Aquesta interpretació es confirma en analitzar la degradació del servei. El gràfic comparatiu entre estabilitat i capacitat evidencia un col·lapse abrupte del sistema en condicions de saturació. Amb una càrrega inicial de 2 reserves, el sistema presenta una fiabilitat moderada (~60%) i satisfà aproximadament un 35% de la demanda total. No obstant això, la robustesa del planificador cau dràsticament en duplicar la càrrega a 4 reserves, on la fiabilitat es desploma fins al ~10%. El punt de ruptura definitiu s'assoleix a partir de les 6 reserves, moment en el qual la taxa d'èxit esdevé nul·la (0%), indicant la incapacitat total del domini bàsic per gestionar escenaris amb una demanda superior a la capacitat instal·lada.
 
 Per tant, respecte a les nostres hipòtesis:
 
 - En l'escenari de poques habitacions i moltes reserves, no rebutgem $H_0$, ja que el planificador no demostra un comportament intel·ligent en maximitzar l'ocupació total. De fet, no és capaç de trobar solucions en aquests casos, ja que el domini bàsic no permet descartar reserves ni relaxar restriccions.
-- Pel que fa a l'escalabilitat, rebutgem $H_1_a$ i rebutgem $H_0$, ja que el temps d'execució no creix linealment ni de manera no lineal amb el nombre de reserves. En canvi, es manté constant i baix degut a la incapacitat del planificador per trobar solucions en aquests escenaris d'alta competència.
+- Pel que fa a l'escalabilitat, no rebutgem $H_0$, ja que el temps d'execució del planificador no creix linealment amb el nombre de reserves. En canvi, es manté constant degut a la incapacitat del model per gestionar l'alta demanda, resultant en una fallada prematura i un veredicte d'insolubilitat.
+
+Per tant, aquest experiment destaca les limitacions crítiques del domini bàsic en situacions d'alta competència per recursos escassos, subratllant la necessitat d'extensions que introdueixin flexibilitat i robustesa en la planificació. Però podem destacar que el planificador és capaç de veure que no hi ha solució i aborta ràpidament, la qual cosa és un comportament desitjable en si mateix.
 
 #### 3.0.2.2 Problema 2: Moltes habitacions, poques reserves
 
@@ -465,7 +475,7 @@ Pel que fa al temps d'execució, obtenim els següents resultats:
   </div>
 </div>
 
-Veiem un creixement lineal lleuger en el temps d'execució a mesura que augmenta el nombre d'habitacions, confirmant la nostra hipòtesi sobre l'eficiència del planificador en aquest escenari. Com que el temps d'execució és molt baix en general, això indica que el planificador gestiona molt bé l'abundància de recursos. Anem un pas més enllà i augmentem el nombre d'habitacions de 50 en 50 fins a 300 per veure si el comportament es manté. Obtenim els següents resultats:
+Veiem un creixement lineal en el temps d'execució a mesura que augmenta el nombre d'habitacions, confirmant la nostra hipòtesi sobre l'eficiència del planificador en aquest escenari. Com que el temps d'execució és molt baix en general, això indica que el planificador gestiona molt bé l'abundància de recursos. Anem un pas més enllà i augmentem el nombre d'habitacions de 50 en 50 fins a 300 per veure si el comportament es manté. Obtenim els següents resultats:
 
 <div class="image-row">
   <div class="image-column">
@@ -481,20 +491,108 @@ Per tant, respecte a les nostres hipòtesis:
 - En l'escenari de poques habitacions i moltes reserves, rebutgem $H_0$ i acceptem $H_1$, ja que el planificador demostra un comportament intel·ligent en maximitzar l'ocupació total.
 - En l'escenari de moltes habitacions i poques reserves, rebutgem $H_0$ i acceptem $H_1$, ja que el planificador assigna totes les reserves disponibles de manera eficient, i el temps d'execució creix de manera lineal amb el nombre d'habitacions. Això confirma la seva capacitat per gestionar escenaris amb abundància de recursos, sense passar al pla exponencial.
 
+#### 3.0.2.3 Problema 3: Moltes habitacions, moltes reserves
+
 ## 3.1 Extensió 1
+
+Per superar les limitacions del domini bàsic, s'introdueix una primera extensió orientada a la gestió flexible de la demanda i l'optimització de recursos. El canvi fonamental respecte al model anterior és l'eliminació de l'obligatorietat d'assignar totes les reserves. En aquest nou enfocament, el sistema ja no busca satisfer la totalitat de les peticions, sinó que se centra a maximitzar el nombre de reserves assignades.
+
+Aquesta relaxació de l'objectiu global permet que el planificador pugui generar plans vàlids fins i tot en escenaris d'alta demanda i saturació. El resultat ja no és una simple assignació binària (tot o res), sinó una solució òptima que acomoda tantes reserves com sigui possible, descartant implícitament aquelles que no caben per conflictes temporals o incompatibilitat d'habitacions. Les condicions per a una assignació correcta es mantenen: no hi pot haver solapament en l'ocupació d'una habitació i les restriccions de compatibilitat entre reserva i habitació s'han de respectar.
+
+També s'inclou una nova manera de saber la compatibilitat entre reserves i habitacions, basada en la capacitat de l'habitació i el nombre de persones de la reserva. Això permet una gestió més realista dels recursos, ja que es pot assignar una habitació a una reserva sempre que la seva capacitat sigui suficient, sense necessitat d'un predicat explícit de compatibilitat.
 
 ### 3.1.1 Domini
 
-S'elimina el predicat compatible i totes les referències a aquest en les accions, ja que es considerarà que les reserves compatibles seran les que la capacitat de l'habitació sigui suficient per a les persones de la reserva.
+El domini `hotel-extensio1` representa una evolució significativa respecte a la seva versió bàsica, incorporant una lògica més realista i flexible per a la gestió de reserves en un entorn de recursos limitats. Les principals diferències estructurals són la introducció de funcions numèriques (`:fluents`).
+
+1. **Ús de Funcions Numèriques (`:functions`)**  
+   A diferència del domini bàsic, aquesta extensió fa ús de funcions numèriques per modelar atributs quantitatius:
+   - `(capacitat ?h - habitacio)`
+   - `(persones ?r - reserva)`.  
+   Aquest canvi substitueix el predicat estàtic `(compatible ?r ?h)`. En lloc de pre-calcular (en la generació dels problemes) totes les combinacions vàlides, el sistema ara pot raonar dinàmicament sobre la capacitat, fent una comparació numèrica `(>= (capacitat ?h) (persones ?r))`. Aquesta aproximació és molt més escalable i modular; si s'afegeix una nova habitació o tipus de reserva, no cal recalcular totes les compatibilitats, només definir el seu valor numèric.
+
+2. **Introducció de l'Acció `descartar-reserva`**  
+   Aquesta és la modificació més important per superar la fragilitat del domini bàsic. S'afegeix una nova acció `descartar-reserva`, que permet al planificador donar per finalitzada una reserva sense assignar-li una habitació.  
+   El domini bàsic fallava quan era impossible assignar totes les reserves. L'acció `descartar-reserva` proporciona una sortida controlada per a aquests casos. Ara, en un escenari de saturació, el planificador pot triar entre `assignar-habitacio` o `descartar-reserva` per a cada petició. Això garanteix que sempre es pugui trobar un pla, evitant el col·lapse total del sistema.
+
+3. **Redefinició del Control de l'Estat**  
+   El sistema de control per evitar el processament duplicat d'una reserva ha estat millorat.  
+   Se substitueix el predicat `(assignada ?r)` per `(processada ?r)`. En el domini bàsic, només les reserves assignades canviaven d'estat. Ara, tant l'acció `assignar-habitacio` com `descartar-reserva` tenen com a efecte `(processada ?r)`. Aquest predicat unificat assegura que cada reserva es consideri una sola vegada, independentment del resultat de la decisió (assignada o descartada).
+
+4. **Incorporació d'una Mètrica d'Optimització**  
+   Per guiar el planificador cap a decisions desitjables, s'utilitza una funció mètrica.  
+   La funció `(total-descartades)` s'incrementa (`increase`) cada cop que s'executa l'acció `descartar-reserva`.  
+   Combinat amb una definició de problema que inclogui `(:metric minimize (total-descartades))`, el planificador ja no busca qualsevol pla, sinó el pla òptim: aquell que minimitza el nombre de reserves descartades. Això és equivalent a maximitzar les reserves assignades, transformant el problema de planificació en un problema d'optimització. S'ha fet aixi i no al revés per facilitar per disseny del planificador, que ha de treballar amb funcions de minimització que puguin créixer durant l'execució.
 
 ### 3.1.2 Problemes
 
 #### 3.1.2.1 Problema 1: Dilema de l'optimització
 
-Aquest problema demostra que el planificador és intel·ligent: ha de preferir assignar dues reserves curtes en lloc d'una reserva llarga si ocupen la mateixa habitació, ja qeu l'objectiu és maximitzar les assignacions.
+Aquest problema busca demostrar que el planificador és intel·ligent en la seva capacitat per maximitzar les assignacions, fins i tot quan això implica prendre decisions no òbvies: ha de preferir assignar dues reserves curtes en lloc d'una reserva llarga si ocupen la mateixa habitació, ja que l'objectiu és maximitzar les assignacions. Per aïllar aquest comportament, hem de dissenyar un escenari on assignar de manera greedy (assignar la primera habitació lliure) sigui el pitjor camí per maximitzar les assignacions. Per tant, programem un problema `prob0101.pddl`amb una habitació ``h1`` i tres reserves ``r1``, ``r2`` i ``r3`` amb les següents característiques:
 
-Hipòtesi: el planificador serà capaç de maximitzar les assignacions, és a dir, demostra un comportament intel·ligent.
+- ``r1``: dies 1-4
+- ``r2``: dies 1-2
+- ``r3``: dies 3-4
 
+En aquest escenari, si el planificador segueix una estratègia greedy i assigna ``r1`` a ``h1``, no podrà assignar ni ``r2`` ni ``r3`` després, obtenint ``total-assignades = 1``. En canvi, l'estratègia òptima és assignar ``r2`` i ``r3`` a ``h1``, obtenint ``total-assignades = 2``.
+
+Plantegem la següent hipòtesi per a aquest experiment:
+
+- $H_0$: El planificador no és capaç de maximitzar les assignacions en situacions on l'estratègia greedy és subòptima.
+- $H_1$: El planificador és capaç de maximitzar les assignacions, evitant l'estratègia greedy quan és necessari.
+
+Executem el problema i obtenim els següents resultats:
+
+```bash
+ff: parsing domain file
+domain 'HOTEL-EXTENSIO1' defined
+ ... done.
+ff: parsing problem file
+problem 'MAXIMITZAR-ASSIGNACIONS' defined
+ ... done.
+
+
+metric established (normalized to minimize): ((1.00*[RF0](TOTAL-DESCARTADES)) - () + 0.00)
+
+checking for cyclic := effects --- OK.
+
+ff: search configuration is  best-first on 1*g(s) + 5*h(s) where
+    metric is ((1.00*[RF0](TOTAL-DESCARTADES)) - () + 0.00)
+
+advancing to distance:    3
+                          2
+                          1
+                          0
+
+ff: found legal plan as follows
+
+step    0: DESCARTAR-RESERVA R-LLARGA
+        1: ASSIGNAR-HABITACIO R-CURTA2 H1
+        2: ASSIGNAR-HABITACIO R-CURTA1 H1
+
+
+time spent:    0.16 seconds instantiating 3 easy, 3 hard action templates
+               0.00 seconds reachability analysis, yielding 26 facts and 6 actions
+               0.00 seconds creating final representation with 22 relevant facts, 1 relevant fluents
+               0.00 seconds computing LNF
+               0.00 seconds building connectivity graph
+               0.00 seconds searching, evaluating 18 states, to a max depth of 0
+               0.16 seconds total time
+```
+
+El planificador ha trobat la solució òptima, descartant la reserva llarga i assignant les dues reserves curtes, obtenint ``total-assignades = 2``. Per tant, rebutgem $H_0$ i acceptem $H_1$, confirmant que el planificador és capaç de maximitzar les assignacions evitant l'estratègia greedy quan és necessari. Però aquest cas és de joguina, caldrà veure-ho en casos més generals.
+
+Dissenyem, amb ajuda de la LLM `Gemini Pro 3`, un generador de problemes que crea escenaris amb múltiples reserves i habitacions, on hi ha conflictes temporals i es requereix una planificació intel·ligent per maximitzar les assignacions. Aquest generador tindrà un paràmetre clau que controlarà el grau de solapament entre reserves: ``conflict_ratio`` (0.0 - 1.0). Si és 0.0, no hi haurà solapaments i totes les reserves es podran assignar fàcilment. Si és 1.0, totes les reserves es solaparan totalment, fent impossible assignar-les totes. Valors intermedis generaran escenaris amb diferents nivells de conflicte, permetent avaluar la capacitat del planificador per gestionar situacions complexes.
+Com que volem aïllar el comportament de maximització d'assignacions, mantenim la compatibilitat entre reserves i habitacions senzilla: totes les habitacions tenen capacitat per 4 persones i totes les reserves seran de 2 persones. Així, l'únic factor limitant serà el solapament temporal. El nombre de dies vindrà donat per un altre paràmetre: ``num_dies``. Així, podem generar problemes amb diferents nivells de conflicte i diferents durades de reserves, per veure com afecta això a la capacitat del planificador per maximitzar les assignacions.
+
+La clau per simular escenaris de competència realistes rau en com es trien els dies d'inici de cada reserva. Podem utilitzar una distribució normal (gaussiana) per modelar aquesta selecció, on el paràmetre `conflict_ratio` controla l'amplitud de la distribució. Això permet que, a mesura que augmenta el `conflict_ratio`, les reserves es concentrin més al voltant d'un punt central del calendari, generant més solapaments i conflictes.
+La desviació estàndardde la distribució normal es pot definir com una funció del `conflict_ratio`, és a dir, es generaran més dies d'inici propers entre si a mesura que augmenta el `conflict_ratio`. Per seleccionar els dies d'inici de les reserves, es podrà fer un mostreig aleatori de la distribució normal amb mitjana al centre del calendari i desviació estàndard proporcional al `conflict_ratio`. Això permetrà controlar el grau de solapament entre reserves de manera matemàtica i sistemàtica.
+
+D'aquesta manera, el generador no només produeix problemes aleatoris, sinó que permet controlar matemàticament el grau de saturació temporal del sistema. A mesura que augmenta el `conflict_ratio`, el planificador s'enfronta a un problema de tipus *Tetris*, on ha de decidir estratègicament quines reserves assignar per maximitzar l'ocupació, descartant aquelles que bloquegen massa espai i impedeixen encaixar altres peticions més curtes. Aquest mecanisme fa que els experiments siguin reproducibles i que els resultats reflecteixin de forma clara la capacitat d'optimització del planificador sota pressió de recursos.
+
+Generarem doncs un conjunt de problemes amb 5 habitacions i 20 reserves, amb un nombre de dies fixat a 10 i un `conflict_ratio` variable (0.0, 0.2, 0.4, 0.6, 0.8, 1.0). Executarem cada problema diverses vegades i prendrem la mitjana per obtenir resultats més fiables.
+
+Pel que fa a la quantitat de reserves assignades, obtenim els següents resultats:
 #### 3.1.2.2 Problema 2: Reserves solapades
 
 El planificador, maximitzant total-assignades, triarà dues reserves que no es solapin en dies (per exemple r1 i r3) i en descartarà una (per exemple r2), obtenint total-assignades = 2.

@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 # Llegim dades
-NOM_FITXER = './resultats/basic/resultats_basic_2.csv'
+NOM_FITXER = './resultats/basic/resultats_basic_1.csv'
 
 df = pd.read_csv(NOM_FITXER)
 
@@ -30,13 +30,13 @@ indices = np.arange(len(df))
 
 # EIX 1 (Esquerra): Fiabilitat (Línia Vermella)
 color_fiab = '#c0392b'
-ax1.set_xlabel('Mida del Problema (Nombre habitacions)', fontsize=12)
+ax1.set_xlabel('Mida del Problema (nombre de reserves)', fontsize=12)
 ax1.set_ylabel('Fiabilitat del Sistema (%)', color=color_fiab, fontsize=12, fontweight='bold')
 p1 = ax1.plot(indices, success_rate, color=color_fiab, marker='o', linewidth=3, label='Fiabilitat')
 ax1.tick_params(axis='y', labelcolor=color_fiab)
 ax1.set_ylim(-5, 105)
 ax1.set_xticks(indices)
-ax1.set_xticklabels(df['num_habitacions'])
+ax1.set_xticklabels(df['num_reserves'])
 
 # EIX 2 (Dreta): Satisfacció (Barres Verdes)
 ax2 = ax1.twinx()
