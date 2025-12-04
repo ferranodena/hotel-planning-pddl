@@ -283,7 +283,6 @@ font-family: Helvetica, Arial, sans-serif;
   - [3.0.2 Problemes](#302-problemes)
     - [3.0.2.1 Problema 1: Poques habitacions, moltes reserves](#3021-problema-1-poques-habitacions-moltes-reserves)
     - [3.0.2.2 Problema 2: Moltes habitacions, poques reserves](#3022-problema-2-moltes-habitacions-poques-reserves)
-    - [3.0.2.3 Problema 3: Proporcions variables](#3023-problema-3-proporcions-variables)
 - [3.1 Extensió 1](#31-extensió-1)
   - [3.1.1 Domini](#311-domini)
   - [3.1.2 Problemes](#312-problemes)
@@ -491,29 +490,6 @@ Per tant, respecte a les nostres hipòtesis:
 - En l'escenari de poques habitacions i moltes reserves, rebutgem $H_0$ i acceptem $H_1$, ja que el planificador demostra un comportament intel·ligent en maximitzar l'ocupació total.
 - En l'escenari de moltes habitacions i poques reserves, rebutgem $H_0$ i acceptem $H_1$, ja que el planificador assigna totes les reserves disponibles de manera eficient, i el temps d'execució creix de manera lineal amb el nombre d'habitacions. Això confirma la seva capacitat per gestionar escenaris amb abundància de recursos, sense passar al pla exponencial.
 
-#### 3.0.2.3 Problema 3: Proporcions variables
-
-Fins ara hem fixat un dels dos paràmetres (habitacions o reserves) i hem variat l'altre per observar el comportament del planificador en escenaris aïllats d'escassetat o abundància. En aquest experiment, volem explorar com el planificador gestiona situacions on ambdós paràmetres varien simultàniament, creant una gamma més àmplia d'escenaris. Per fer-ho, generarem problemes on la proporció entre habitacions i reserves canvia de manera creixent, partint de 0.1 (més reserves que habitacions) fins a 4.0 (més habitacions que reserves). S'espera observar:
-
-1. **Adaptabilitat a la Demanda:** El planificador haurà de mostrar un canvi de comportament clar: prioritzant quines reserves assignar quan la rati és baixa (escassetat) i satisfent tota la demanda quan la rati és alta (abundància).
-2. **Transició de Fase:** S'espera observar un punt d'inflexió en el rendiment quan la rati s'acosta a 1.0 (equilibri entre oferta i demanda), on la complexitat de trobar una solució òptima podria ser més elevada que en els extrems.
-
-Per tant, plantegem el següent parell d'hipòtesis per a aquest experiment:
-
-Respecte al comportament del planificador sota ràtios variables:
-
-- $H_0$: El percentatge d'assignacions reeixides no varia significativament amb la proporció d'habitacions/reserves.
-- $H_1$: El percentatge d'assignacions reeixides està directament correlacionat amb la rati, augmentant a mesura que passem d'escenaris d'escassetat (0.1) a abundància (4.0).
-
-Hipòtesi sobre l'eficiència del planificador:
-
-- $H_0$: El temps d'execució és constant o aleatori i no depèn de la relació entre recursos i demanda.
-- $H_1$: El temps d'execució reflecteix la dificultat de l'assignació, sent potencialment més alt en punts de transició o saturació i estabilitzant-se en escenaris d'abundància clara.
-
-Generarem problemes ajustant les quantitats d'habitacions i reserves per cobrir l'espectre de ràtios des de 0.1 fins a 4.0. Executarem cada configuració diverses vegades i prendrem la mitjana per obtenir resultats més fiables. Esperem veure una corba clara de rendiment que demostri com el planificador s'adapta als diferents nivells de disponibilitat de recursos. Mantenim el nombre de dies a 10 per a tots els experiments.
-
----
-
 ## 3.1 Extensió 1
 
 Per superar les limitacions del domini bàsic, s'introdueix una primera extensió orientada a la gestió flexible de la demanda i l'optimització de recursos. El canvi fonamental respecte al model anterior és l'eliminació de l'obligatorietat d'assignar totes les reserves. En aquest nou enfocament, el sistema ja no busca satisfer la totalitat de les peticions, sinó que se centra a maximitzar el nombre de reserves assignades.
@@ -653,7 +629,18 @@ Concluint, aquest experiment valida l'eficàcia de l'extensió 1 en transformar 
 
 #### 3.1.2.2 Problema 2: L'hotel creixent
 
-Al problema anterior hem vist que el planificador és capaç de maximitzar les assignacions en escenaris amb alta competència per recursos limitats. Ara volem avaluar com es comporta el sistema quan augmentem la mida del problema, és a dir, el nombre d'habitacions i reserves. L'objectiu és veure si el planificador manté la seva capacitat d'optimització i escalabilitat a mesura que el domini creix en complexitat. Per això, generarem problemes amb un nombre creixent i proporcionall d'habitacions i reserves, mantenint un `conflict_ratio` fixat a 0.6 per simular una saturació moderada, però que a l'experiment anterior ens ha donat bons resultats. Això crea un escenari on el planificador ha de gestionar més recursos i demandes, posant a prova la seva eficiència i capacitat d'optimització.
+Al problema anterior hem vist que el planificador és capaç de maximitzar les assignacions en escenaris amb alta competència per recursos limitats. Ara volem avaluar com es comporta el sistema quan augmentem la mida del problema, és a dir, el nombre d'habitacions i reserves. L'objectiu és veure si el planificador manté la seva capacitat d'optimització i escalabilitat a mesura que el domini creix en complexitat. Per això, generarem problemes amb un nombre creixent i proporcional d'habitacions i reserves, mantenint un `conflict_ratio` fixat a 0.6 per simular una saturació moderada, però que a l'experiment anterior ens ha donat bons resultats. Això crea un escenari on el planificador ha de gestionar més recursos i demandes, posant a prova la seva eficiència i capacitat d'optimització.
+
+Aquest problema busca demostrar la **robustesa** del planificador davant l'explosió combinatòria. En planificació automàtica, afegir una sola habitació o reserva no suma complexitat, sinó que multiplica l'espai d'estats que l'algorisme ha d'explorar. Per aïllar el factor "mida" del factor "dificultat intrínseca", mantenim la densitat de conflictes constant (la proporció entre oferta i demanda no canvia), però augmentem el volum absolut de dades.
+
+Concretament, dissenyem una sèrie de problemes incrementals on la relació es manté a 6 habitacions per cada 10 reserves (Ratio 0.6), començant per instàncies petites i acabant en instàncies grans. En aquest escenari, s'espera que el planificador hagi de fer front a un nombre molt més elevat de branques de decisió. Si el planificador és escalable, hauria de mantenir un percentatge d'èxit (assignacions/total) similar tant en la mida XS com en la XL, encara que el temps de càlcul augmenti.
+
+Plantegem el següent parell d'hipòtesis per a aquest experiment:
+
+- $H_0$: El planificador perd capacitat d'optimització a gran escala o el temps d'execució creix de manera inassumible (exponencial), fent impossible resoldre instàncies grans dins del temps límit.
+- $H_1$: El planificador manté la qualitat de la solució (percentatge d'assignacions constant) i el temps d'execució creix de manera controlada (polinòmica), demostrant una bona escalabilitat.
+
+Executarem problemes amb mides de mostra creixents (10, 20, ..., 100 reserves) repetint cada experiment 5 vegades per mitigar el soroll en la mesura del temps. Esperem observar una corba de temps ascendent però un percentatge d'assignacions estable al voltant del màxim teòric permès pel rati de 0.6.
 
 ## 3.2 Extensió 2
 

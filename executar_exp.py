@@ -23,12 +23,28 @@ FF_EXECUTABLE    = "./programa/metricff.exe"
 OUTPUT_CSV       = "resultats/basic/resultats_basic_3.csv" # Nom nou per diferenciar
 TEMP_DIR         = "./basic/temp_experiments_basic_3/"
 
-NUM_REPLIQUES = 10 
-TIMEOUT_SEGONS = 180 
+NUM_REPLIQUES = 5 
+TIMEOUT_SEGONS = 20
 
 # Configuracions d'experiment (reserves, habitacions, dies)
 CONFIGURACIONS = [
-    
+    (10, int(10 * 0.1), 30),
+    (10, int(10 * 0.25), 30),
+    (10, int(10 * 0.5), 30),
+    (10, int(10 * 0.75), 30),
+    (10, int(10 * 1.0), 30),
+    (10, int(10 * 1.25), 30),
+    (10, int(10 * 1.5), 30),
+    (10, int(10 * 1.75), 30),
+    (10, int(10 * 2.0), 30),
+    (10, int(10 * 2.25), 30),
+    (10, int(10 * 2.5), 30),
+    (10, int(10 * 2.75), 30),
+    (10, int(10 * 3.0), 30),
+    (10, int(10 * 3.25), 30),
+    (10, int(10 * 3.5), 30),
+    (10, int(10 * 3.75), 30),
+    (10, int(10 * 4.0), 30),  
 ]
 
 # =============================================================================
@@ -160,6 +176,7 @@ def main():
             'num_reserves': r,          # <--- Variable
             'num_habitacions': h,       # <--- Variable NOVA
             'num_dies': d,              # <--- Variable NOVA
+            'proporcio_hr': h/r if r != 0 else 0,  # <--- Variable NOVA
             'mitjana_temps_ms': avg_t,
             'mitjana_reserves_assignades': avg_a,
             'timeouts_errors': errors_count,
@@ -171,7 +188,7 @@ def main():
     # GUARDAR CSV (AMB NOVES COLUMNES)
     with open(OUTPUT_CSV, 'w', newline='') as f:
         fieldnames = [
-            'num_reserves', 'num_habitacions', 'num_dies', 
+            'num_reserves', 'num_habitacions', 'num_dies', 'proporcio_hr',
             'mitjana_temps_ms', 'mitjana_reserves_assignades', 
             'timeouts_errors', 'exit_ratio'
         ]
