@@ -283,7 +283,7 @@ font-family: Helvetica, Arial, sans-serif;
   - [3.0.2 Problemes](#302-problemes)
     - [3.0.2.1 Problema 1: Poques habitacions, moltes reserves](#3021-problema-1-poques-habitacions-moltes-reserves)
     - [3.0.2.2 Problema 2: Moltes habitacions, poques reserves](#3022-problema-2-moltes-habitacions-poques-reserves)
-    - [3.0.2.3 Problema 3: Moltes habitacions, moltes reserves](#3023-problema-3-moltes-habitacions-moltes-reserves)
+    - [3.0.2.3 Problema 3: Proporcions variables](#3023-problema-3-proporcions-variables)
 - [3.1 Extensió 1](#31-extensió-1)
   - [3.1.1 Domini](#311-domini)
   - [3.1.2 Problemes](#312-problemes)
@@ -491,29 +491,28 @@ Per tant, respecte a les nostres hipòtesis:
 - En l'escenari de poques habitacions i moltes reserves, rebutgem $H_0$ i acceptem $H_1$, ja que el planificador demostra un comportament intel·ligent en maximitzar l'ocupació total.
 - En l'escenari de moltes habitacions i poques reserves, rebutgem $H_0$ i acceptem $H_1$, ja que el planificador assigna totes les reserves disponibles de manera eficient, i el temps d'execució creix de manera lineal amb el nombre d'habitacions. Això confirma la seva capacitat per gestionar escenaris amb abundància de recursos, sense passar al pla exponencial.
 
-#### 3.0.2.3 Problema 3: Moltes habitacions, moltes reserves
+#### 3.0.2.3 Problema 3: Proporcions variables
 
-En aquest experiment volem avaluar la capacitat del planificador per gestionar escenaris realistes on hi ha una quantitat significativa tant d'habitacions com de reserves. Aquest escenari simula situacions comunes en la gestió hotelera, on es disposa d'una oferta considerable d'habitacions i una demanda elevada de reserves. Per fer-ho, incrementarem progressivament tant el nombre d'habitacions com el nombre de reserves (1/2 del nombre d'habitacions) per crear un escenari equilibrat, on no hi hagi ni escassetat ni abundància extrema de recursos.
+Fins ara hem fixat un dels dos paràmetres (habitacions o reserves) i hem variat l'altre per observar el comportament del planificador en escenaris aïllats d'escassetat o abundància. En aquest experiment, volem explorar com el planificador gestiona situacions on ambdós paràmetres varien simultàniament, creant una gamma més àmplia d'escenaris. Per fer-ho, generarem problemes on la proporció entre habitacions i reserves canvia de manera creixent, partint de 0.1 (més reserves que habitacions) fins a 4.0 (més habitacions que reserves). S'espera observar:
 
-Com que hem vist que en l'escenari de poques habitacions i moltes reserves el planificador no pot trobar solucions, i en l'escenari de moltes habitacions i poques reserves sempre pot trobar solucions, aquest escenari mixt ens permetrà observar com es comporta el planificador en un punt intermedi. S'espera observar:
-
-1. **Comportament Adaptatiu:** El planificador haurà de ser capaç d'assignar la majoria de les reserves, però pot haver-hi algunes que no es puguin assignar degut a conflictes temporals.
-2. **Escalabilitat:** S'espera que el temps d'execució creixi de manera moderada, ja que l'espai de cerca per trobar assignacions òptimes és més complex que en els escenaris anteriors.
+1. **Adaptabilitat a la Demanda:** El planificador haurà de mostrar un canvi de comportament clar: prioritzant quines reserves assignar quan la rati és baixa (escassetat) i satisfent tota la demanda quan la rati és alta (abundància).
+2. **Transició de Fase:** S'espera observar un punt d'inflexió en el rendiment quan la rati s'acosta a 1.0 (equilibri entre oferta i demanda), on la complexitat de trobar una solució òptima podria ser més elevada que en els extrems.
 
 Per tant, plantegem el següent parell d'hipòtesis per a aquest experiment:
 
-Respecte al comportament del planificador en aquest escenari equilibrat:
+Respecte al comportament del planificador sota ràtios variables:
 
-- $H_0$: El planificador no és capaç d'assignar la majoria de les reserves, deixant moltes sense assignar degut a conflictes temporals.
-- $H_1$: El planificador és capaç d'assignar la majoria de les reserves, gestionant eficientment els conflictes temporals.
+- $H_0$: El percentatge d'assignacions reeixides no varia significativament amb la proporció d'habitacions/reserves.
+- $H_1$: El percentatge d'assignacions reeixides està directament correlacionat amb la rati, augmentant a mesura que passem d'escenaris d'escassetat (0.1) a abundància (4.0).
 
-Hipòtesi sobre l'escalabilitat del planificador:
+Hipòtesi sobre l'eficiència del planificador:
 
-- $H_0$: El temps d'execució del planificador creix de manera no lineal amb el nombre d'habitacions i reserves, indicant una gestió ineficient de l'espai de cerca.
-- $H_1$: El temps d'execució del planificador creix de manera moderada amb el nombre d'habitacions i reserves, indicant una gestió eficient de l'espai de cerca.
+- $H_0$: El temps d'execució és constant o aleatori i no depèn de la relació entre recursos i demanda.
+- $H_1$: El temps d'execució reflecteix la dificultat de l'assignació, sent potencialment més alt en punts de transició o saturació i estabilitzant-se en escenaris d'abundància clara.
 
-Generarem problemes amb un nombre d'habitacions creixent (10, 20, 30, ..., fins a 100) i la meitat de reserves (5, 10, 15, ..., fins a 50). Executarem cada problema diverses vegades i prendrem la mitjana per obtenir resultats més fiables. El nombre de dies creixerà proporcionalment amb el nombre de reserves per mantenir la complexitat. Els resultats obtinguts són els següents:
+Generarem problemes ajustant les quantitats d'habitacions i reserves per cobrir l'espectre de ràtios des de 0.1 fins a 4.0. Executarem cada configuració diverses vegades i prendrem la mitjana per obtenir resultats més fiables. Esperem veure una corba clara de rendiment que demostri com el planificador s'adapta als diferents nivells de disponibilitat de recursos. Mantenim el nombre de dies a 10 per a tots els experiments.
 
+---
 
 ## 3.1 Extensió 1
 

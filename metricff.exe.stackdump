@@ -1,0 +1,13 @@
+Exception: STATUS_ACCESS_VIOLATION at eip=0042EE76
+eax=000001D4 ebx=01DC4CF8 ecx=00000000 edx=00000000 esi=5FE0FBC0 edi=009EC980
+ebp=009E7B38 esp=009E7AD0 program=C:\Users\User\Documents\universitat\2n1q\abia\practica2\ABIA-practica-2\programa\metricff.exe, pid 2368, thread main
+cs=0023 ds=002B es=002B fs=0053 gs=002B ss=002B
+Stack trace:
+Frame     Function  Args
+009E7B38  0042EE76  (009EC980, 0000004D, 5FF818F0, 00000000)
+009EC9A8  0043031E  (009EC9F0, 00000001, 00000005, 00721D00)
+009ECC18  00401918  (00000006, 01A00200, 01A00090, 009ECC60)
+009ECD48  610060D8  (00000000, 009ECD80, 61005450, 009ECD80)
+61005450  61004416  (0000009C, A02404C7, E8611021, FFFFFF48)
+  27818 [main] metricff 2368 _cygtls::handle_exceptions: Exception: STATUS_ACCESS_VIOLATION
+  28667 [main] metricff 2368 _cygtls::handle_exceptions: Error while dumping state (probably corrupted stack)
