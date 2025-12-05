@@ -1,0 +1,42 @@
+
+ff: parsing domain file
+domain 'HOTEL-EXTENSIO3' defined
+ ... done.
+ff: parsing problem file
+problem 'CONFLICTES_PONDERACIO' defined
+ ... done.
+
+
+metric established (normalized to minimize): ((10.00*[RF1](TOTAL-RESERVES-DESCARTADES)1.00*[RF0](TOTAL-PLACES-DESCARTADES)) - () + 0.00)
+
+checking for cyclic := effects --- OK.
+
+ff: search configuration is  best-first on 1*g(s) + 5*h(s) where
+    metric is ((10.00*[RF1](TOTAL-RESERVES-DESCARTADES)1.00*[RF0](TOTAL-PLACES-DESCARTADES)) - () + 0.00)
+
+advancing to distance:    6
+                          5
+                          4
+                          3
+                          2
+                          1
+                          0
+
+ff: found legal plan as follows
+
+step    0: ASSIGNAR-HABITACIO R2 H4
+        1: ASSIGNAR-HABITACIO R1 H1
+        2: ASSIGNAR-HABITACIO R6 H2
+        3: ASSIGNAR-HABITACIO R4 H5
+        4: ASSIGNAR-HABITACIO R5 H4
+        5: ASSIGNAR-HABITACIO R3 H2
+     
+
+time spent:    0.00 seconds instantiating 6 easy, 22 hard action templates
+               0.00 seconds reachability analysis, yielding 42 facts and 28 actions
+               0.00 seconds creating final representation with 42 relevant facts, 2 relevant fluents
+               0.00 seconds computing LNF
+               0.00 seconds building connectivity graph
+               0.00 seconds searching, evaluating 277 states, to a max depth of 0
+               0.00 seconds total time
+

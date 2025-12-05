@@ -672,7 +672,77 @@ Hipòtesi: el planificador serà capaç de sacrificar preferències per maximitz
 
 ## 3.3 Extensió 3
 
+L'extensió 3 es presenta com una evolució de l'extensió 1. Com en aquesta última, hem d’assignar les reserves a les habitacions sense que hi hagi solapaments en les dates d’ocupació. Però ara, a més d’optimitzar el nombre de reserves assignades, també hem de minimitzar el desperdici de places, és a dir, procurar que les reserves ocupin habitacions amb una capacitat tan ajustada com sigui possible, evitant deixar places lliures innecessàries.
+
 ### 3.3.1 Domini
+El domini d'aquesta extensió és gairebé idèntic al de l'extensió 1:
+
+```
+(define (domain hotel-extensio3)
+  (:requirements :typing :negative-preconditions :adl :fluents)
+  (:types
+    reserva habitacio dia
+  )
+
+  (:predicates 
+    (dies-reserva ?r - reserva ?d - dia)
+    (ocupada ?h - habitacio ?d - dia)
+    (processada ?r - reserva) ; per saber si ja hem processat la reserva
+  )
+
+  (:functions
+    (capacitat ?h - habitacio) 
+    (persones ?r - reserva)   
+    (total-reserves-descartades)
+    (total-places-descartades)        
+  )
+
+  ;; assigna i incrementa la mètrica
+  (:action assignar-habitacio
+      :parameters (
+        ?r - reserva 
+        ?h - habitacio
+      )
+      :precondition (and
+        (not (processada ?r))          ;; només si encara no l'hem tractat
+        (>= (capacitat ?h) (persones ?r)) ; control de capacitat de les habitacions
+        (not (exists (?d - dia) 
+             (and (dies-reserva ?r ?d) (ocupada ?h ?d))))
+      )
+      :effect (and
+        (processada ?r)                ;; marquem com processada
+        (forall (?d - dia) 
+          (when (dies-reserva ?r ?d) (ocupada ?h ?d)))
+        (increase (total-places-descartades)
+        (- (capacitat ?h) (persones ?r)))
+      )
+  )
+
+  (:action descartar-reserva
+      :parameters (?r - reserva)
+      :precondition (not (processada ?r))
+      :effect (and 
+        (processada ?r)
+        (increase (total-reserves-descartades) 1) ;; suemem 1 al total de descartades
+      )
+  )
+)
+```
+Com es pot observar, les principals diferències es troben en les funcions numèriques i en la mètrica d'optimització:
+- Hem mantingut la funció `total-reserves-descartades`, que ja s'utilitzava a l'extensió 1 per comptabilitzar les reserves que no es podien assignar.
+- Hem afegit una nova funció, `total-places-descartades`, que ens permet mesurar el nombre de places desaprofitades quan una reserva s'assigna a una habitació més gran del necessari.
+
+L'objectiu d'aquesta extensió és, per tant, minimitzar ambdues mètriques: evitar descartar reserves i reduir el desaprofitament d'espai en les habitacions.
+La modificació clau es troba dins de l'acció `assignar-habitacio`:
+
+```
+(increase (total-places-descartades)
+         (- (capacitat ?h) (persones ?r)))
+
+```
+Cada vegada que assignem una reserva a una habitació, incrementem `total-places-descartades` amb la diferència entre la capacitat de l’habitació i el nombre de persones de la reserva. D’aquesta manera, es fa un seguiment exacte de les places buides que queden en totes les habitacions.
+
+La resta del domini, incloses les accions i predicats, es manté igual que en l’extensió 1. Això permet preservar la lògica d’assignació sense solapaments mentre afegim la nova preocupació d’optimització del desperdici de places.
 
 ### 3.3.2 Problemes
 

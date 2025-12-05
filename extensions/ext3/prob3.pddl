@@ -32,7 +32,7 @@
     (= (persones r3) 3)
 
     ;; Funcions numèriques inicials
-    (= (total-habitacions-descartades) 0)
+    (= (total-reserves-descartades) 0)
     (= (total-places-descartades) 0)
   )
 
@@ -47,7 +47,7 @@
   ;; Segon criteri: minimitzar desperdici
   (:metric 
     minimize
-      (+ (* 1000 (total-habitacions-descartades))
+      (+ (* 1000 (total-reserves-descartades))
          (total-places-descartades))
   )
 )
