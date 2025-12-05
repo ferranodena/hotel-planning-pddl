@@ -20,28 +20,22 @@ import sys
 GENERADOR_PYTHON = "./extensions/ext1/generador1.1.py" 
 DOMAIN_FILE      = "./extensions/ext1/dom1.pddl"
 FF_EXECUTABLE    = "./programa/metricff.exe"
-OUTPUT_CSV       = "resultats/ext1/resultats_inteligencia.csv"
-TEMP_DIR         = "./extensions/ext1/temp_exp"
+OUTPUT_CSV       = "resultats/ext1/resultats_2.csv"
+TEMP_DIR         = "./extensions/ext1/temp_exp_2"
 
-NUM_REPLIQUES = 10
-TIMEOUT_SEGONS = 300 # Més temps perquè l'optimització triga més
+NUM_REPLIQUES = 5
+TIMEOUT_SEGONS = 180 # Més temps perquè l'optimització triga més
 
 # CONFIGURACIONS D'EXPERIMENT
 # (Reserves, Habitacions, Dies, Conflict_Ratio)
 # Variem només el conflicte per veure la "Intel·ligència"
 CONFIGURACIONS = [
     # (R, H, D, Conflicte)
-    (20, 5, 25, 0.0),   # Fàcil (Uniforme)
-    (20, 5, 25, 0.1),
-    (20, 5, 25, 0.2),
-    (20, 5, 25, 0.3),
-    (20, 5, 25, 0.4),
-    (20, 5, 25, 0.5),
-    (20, 5, 25, 0.6),
-    (20, 5, 25, 0.7),
-    (20, 5, 25, 0.8),
-    (20, 5, 25, 0.9),
-    (20, 5, 25, 1.0),   # Extrem (Tot concentrat)
+    (10,6,30,0.6),
+    (20,12,30,0.6),
+    (30,18,30,0.6),
+    (40,24,30,0.6),
+    (50,30,30,0.6),
 ]
 
 # =============================================================================

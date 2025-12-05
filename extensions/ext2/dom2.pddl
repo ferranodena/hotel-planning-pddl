@@ -1,42 +1,72 @@
-(define (domain hotel-extensio1)
+(define (domain hotel-extensio2)
   (:requirements :typing :negative-preconditions :adl :fluents)
-  (:types reserva habitacio dia orientacio)
+  (:types
+    reserva habitacio dia
+  )
 
   (:predicates 
-    (assignada ?r - reserva)
-    (vol-orientacio ?r - reserva ?o - orientacio)
     (dies-reserva ?r - reserva ?d - dia)
     (ocupada ?h - habitacio ?d - dia ?r - reserva)
     (processada ?r - reserva)
     (orientada ?h - habitacio ?o - orientacio)
+    (vol-orientacio ?r - reserva ?o - orientacio)
   )
 
   (:functions
     (capacitat ?h - habitacio) 
     (persones ?r - reserva)   
-    (total-assignades)        
+    (total-descartades)        
   )
 
-  ;; assigna i incrementa la mètrica (escala: 2 punts orientació correcta, 1 si no)
-  (:action assignar-habitacio
-    :parameters (
-      ?r - reserva 
-      ?h - habitacio 
-      ?o - orientacio)
-    :precondition (and
-      (not (processada ?r))
-      (vol-orientacio ?r ?o)
-      (>= (capacitat ?h) (persones ?r))
-      (not (exists (?d - dia ?r2 - reserva)
-          (and (dies-reserva ?r ?d) (ocupada ?h ?d ?r2))))
-    )
-    :effect (and
-      (assignada ?r)
-      (processada ?r)
-      (when (orientada ?h ?o) (increase (total-assignades) 2))
-      (when (not (orientada ?h ?o)) (increase (total-assignades) 1))
-      (forall (?d - dia)
-        (when (dies-reserva ?r ?d) (ocupada ?h ?d ?r)))
-    )
+  ;; assigna i incrementa la mètrica
+  (:action assignar-habitacio-orientada
+      :parameters (
+        ?r - reserva 
+        ?h - habitacio
+        ?o - orientacio
+      )
+      :precondition (and
+        (not (processada ?r))          ;; només si encara no l'hem tractat
+        (>= (capacitat ?h) (persones ?r)) ; control de capacitat de les habitacions
+        (not (exists (?d - dia ?r2 - reserva) 
+             (and (dies-reserva ?r ?d) (ocupada ?h ?d ?r2))))
+        (and (vol-orientacio ?r ?o) (orientada ?h ?o))
+      )
+      :effect (and
+        (processada ?r)                ;; marquem com processada
+        (forall (?d - dia) 
+          (when (dies-reserva ?r ?d) (ocupada ?h ?d ?r)))
+      )
+  )
+
+  (:action assignar-habitacio-desorientada
+      :parameters (
+        ?r - reserva 
+        ?h - habitacio
+        ?o - orientacio
+      )
+      :precondition (and
+        (not (processada ?r))          ;; només si encara no l'hem tractat
+        (>= (capacitat ?h) (persones ?r)) ; control de capacitat de les habitacions
+        (not (exists (?d - dia ?r2 - reserva) 
+             (and (dies-reserva ?r ?d) (ocupada ?h ?d ?r2))))
+        (not (orientada ?h ?o))
+        )
+      :effect (and
+        (processada ?r)                ;; marquem com processada
+        (forall (?d - dia) 
+          (when (dies-reserva ?r ?d) (ocupada ?h ?d ?r)))
+        (increase (total-descartades) 1) ;; sumem 1 al total de descartades
+      )
+  )
+
+
+  (:action descartar-reserva
+      :parameters (?r - reserva)
+      :precondition (not (processada ?r))
+      :effect (and 
+        (processada ?r)
+        (increase (total-descartades) 2) ;; suemem 1 al total de descartades
+      )
   )
 )

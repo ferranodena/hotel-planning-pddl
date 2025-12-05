@@ -288,6 +288,7 @@ font-family: Helvetica, Arial, sans-serif;
   - [3.1.2 Problemes](#312-problemes)
     - [3.1.2.1 Problema 1: Dilema de l'optimització](#3121-problema-1-dilema-de-loptimització)
     - [3.1.2.2 Problema 2: L'hotel creixent](#3122-problema-2-lhotel-creixent)
+    - [3.1.2.3 Possible problema 3: Afecta en quin punt de la reserva es concentrin les reserves? (principi, mig, final de mes)](#3123-possible-problema-3-afecta-en-quin-punt-de-la-reserva-es-concentrin-les-reserves-principi-mig-final-de-mes)
 - [3.2 Extensió 2](#32-extensió-2)
   - [3.2.1 Domini](#321-domini)
   - [3.2.2 Problemes](#322-problemes)
@@ -564,10 +565,10 @@ time spent:    0.16 seconds instantiating 3 easy, 3 hard action templates
 El planificador ha trobat la solució òptima, descartant la reserva llarga i assignant les dues reserves curtes, obtenint ``total-assignades = 2``. Per tant, rebutgem $H_0$ i acceptem $H_1$, confirmant que el planificador és capaç de maximitzar les assignacions evitant l'estratègia greedy quan és necessari. Però aquest cas és de joguina, caldrà veure-ho en casos més generals.
 
 Dissenyem, amb ajuda de la LLM **Gemini 3 Pro**, un generador de problemes que crea escenaris amb múltiples reserves i habitacions, on hi ha conflictes temporals i es requereix una planificació intel·ligent per maximitzar les assignacions. Aquest generador tindria un paràmetre clau que controlaria el grau de solapament entre reserves: ``conflict_ratio`` (0.0 - 1.0). Si és 0.0, no hi hauria solapaments i totes les reserves es podrien assignar fàcilment. Si és 1.0, totes les reserves es solaparan totalment, fent impossible assignar-les totes. Valors intermedis generaran escenaris amb diferents nivells de conflicte, permetent avaluar la capacitat del planificador per gestionar situacions complexes.
-Com que volem aïllar el comportament de maximització d'assignacions, mantenim la compatibilitat entre reserves i habitacions senzilla: totes les habitacions tenen capacitat per 4 persones i totes les reserves seran de 2 persones. Així, l'únic factor limitant serà el solapament temporal. El nombre de dies vindrà donat per un altre paràmetre: ``num_dies``. Així, podem generar problemes amb diferents nivells de conflicte i diferents durades de reserves, per veure com afecta això a la capacitat del planificador per maximitzar les assignacions.
+Com que volem aïllar el comportament de maximització d'assignacions, mantenim la compatibilitat entre reserves i habitacions senzilla: totes les habitacions tenen capacitat per 4 persones i totes les reserves seran de 2 persones. Així, l'únic factor limitant serà el solapament temporal. El nombre de dies vindrà donat per un altre paràmetre: ``num_dies``, que, tot i que l'enunciat indica que són 30 dies, hem decidit que podria ser un paràmetre variable per al generador de problemes, ja que seria necessari pel càlcul del ``conflict_ratio`` que expliquem a continuació.
 
 La clau per simular escenaris de competència realistes rau en com es trien els dies d'inici de cada reserva. Podem utilitzar una distribució normal (gaussiana) per modelar aquesta selecció, on el paràmetre `conflict_ratio` controla l'amplitud de la distribució. Això permet que, a mesura que augmenta el `conflict_ratio`, les reserves es concentrin més al voltant d'un punt central del calendari, generant més solapaments i conflictes.
-La desviació estàndardde la distribució normal es pot definir com una funció del `conflict_ratio`, és a dir, es generaran més dies d'inici propers entre si a mesura que augmenta el `conflict_ratio`. Per seleccionar els dies d'inici de les reserves, es podrà fer un mostreig aleatori de la distribució normal amb mitjana al centre del calendari i desviació estàndard proporcional al `conflict_ratio`. Això permetrà controlar el grau de solapament entre reserves de manera matemàtica i sistemàtica.
+La desviació estàndard de la distribució normal es pot definir com una funció del `conflict_ratio`, és a dir, es generaran més dies d'inici propers entre si a mesura que augmenta el `conflict_ratio`. Per seleccionar els dies d'inici de les reserves, es podrà fer un mostreig aleatori de la distribució normal amb mitjana al centre del calendari i desviació estàndard proporcional al `conflict_ratio`. Això permetrà controlar el grau de solapament entre reserves de manera matemàtica i sistemàtica.
 
 D'aquesta manera, el generador no només produirà problemes aleatoris, sinó que permetrà controlar matemàticament el grau de saturació temporal del sistema. A mesura que augmenta el `conflict_ratio`, el planificador s'enfronta a un problema de tipus *Tetris*, on ha de decidir estratègicament quines reserves assignar per maximitzar l'ocupació, descartant aquelles que bloquegen massa espai i impedeixen encaixar altres peticions més curtes. Aquest mecanisme fa que els experiments siguin reproducibles i que els resultats reflecteixin de forma clara la capacitat d'optimització del planificador sota pressió de recursos.
 
@@ -589,7 +590,7 @@ El 0.4 és un factor d'ajust que determina l'amplitud de la campana. Amb aquest 
 
 Per tant, el número `conflict_ratio` és un **"índex d'estretor"**: com més proper a 1, més estret és l'interval de dies on tothom vol reservar. Per exemple: per un `conflict_ratio` de 0.8 en un calendari de 25 dies: $ \sigma = 25 \times (1.1 - 0.8) \times 0.4 = 3$ Això significa que la majoria de reserves començaran dins d'un interval de 6 dies al voltant del dia 12.5 (el centre), generant molts solapaments i conflictes. En canvi, per un `conflict_ratio` de 0.2: $ \sigma = 25 \times (1.1 - 0.2) \times 0.4 = 9$ Aquí, les reserves es distribuiran més àmpliament, amb menys solapaments.
 
-Generarem doncs un conjunt de problemes amb 5 habitacions i 20 reserves, amb un nombre de dies fixat a 25 i un `conflict_ratio` variable (0.0, 0.1, 0.2, ... 1.0). Executarem cada problema 10 vegades i prendrem la mitjana per obtenir resultats més fiables.
+Generarem doncs un conjunt de problemes amb 5 habitacions i 20 reserves, amb un nombre de dies fixat a 25 (tot i que l'enunciat indica 30 dies, hem decidit canviar-ho momentàniament pel bé del generador de problemes, ja que 25 dies permet una millor gestió dels solapaments amb 20 reserves) i un `conflict_ratio` variable (0.0, 0.1, 0.2, ... 1.0). Executarem cada problema 10 vegades i prendrem la mitjana per obtenir resultats més fiables.
 
 Aquests nombres s'han seleccionat així perquè voliem una concentració mitjana d'ús de l'hotel d'un 50%, és a dir, que en mitjana hi hagi la meitat d'habitacions ocupades.
 
@@ -633,20 +634,86 @@ Al problema anterior hem vist que el planificador és capaç de maximitzar les a
 
 Aquest problema busca demostrar la **robustesa** del planificador davant l'explosió combinatòria. En planificació automàtica, afegir una sola habitació o reserva no suma complexitat, sinó que multiplica l'espai d'estats que l'algorisme ha d'explorar. Per aïllar el factor "mida" del factor "dificultat intrínseca", mantenim la densitat de conflictes constant (la proporció entre oferta i demanda no canvia), però augmentem el volum absolut de dades.
 
-Concretament, dissenyem una sèrie de problemes incrementals on la relació es manté a 6 habitacions per cada 10 reserves (Ratio 0.6), començant per instàncies petites i acabant en instàncies grans. En aquest escenari, s'espera que el planificador hagi de fer front a un nombre molt més elevat de branques de decisió. Si el planificador és escalable, hauria de mantenir un percentatge d'èxit (assignacions/total) similar tant en la mida XS com en la XL, encara que el temps de càlcul augmenti.
+Concretament, dissenyem una sèrie de problemes incrementals on la relació es manté a 6 habitacions per cada 10 reserves, començant per instàncies petites i acabant en instàncies grans. En aquest escenari, s'espera que el planificador hagi de fer front a un nombre molt més elevat de branques de decisió. Si el planificador és escalable, hauria de mantenir un percentatge d'èxit (assignacions/total) similar en totes les mides, tot i que el temps d'execució probablement augmentarà.
 
 Plantegem el següent parell d'hipòtesis per a aquest experiment:
 
-- $H_0$: El planificador perd capacitat d'optimització a gran escala o el temps d'execució creix de manera inassumible (exponencial), fent impossible resoldre instàncies grans dins del temps límit.
-- $H_1$: El planificador manté la qualitat de la solució (percentatge d'assignacions constant) i el temps d'execució creix de manera controlada (polinòmica), demostrant una bona escalabilitat.
+- $H_0$: El planificador perd capacitat d'optimització a gran escala i el percentatge d'assignacions disminueix significativament a mesura que augmenta la mida del problema.
+- $H_1$: El planificador manté la qualitat de la solució a gran escala, amb un percentatge d'assignacions estable independentment de la mida del problema, inclús manentint el 100% d'assignacions com a l'experiment anterior
 
-Executarem problemes amb mides de mostra creixents (10, 20, ..., 100 reserves) repetint cada experiment 5 vegades per mitigar el soroll en la mesura del temps. Esperem observar una corba de temps ascendent però un percentatge d'assignacions estable al voltant del màxim teòric permès pel rati de 0.6.
+Pel que fa a l'escalabilitat:
+
+- $H_0$: El temps d'execució del planificador creix de manera no lineal amb l'augment de la mida del problema, indicant una gestió ineficient de l'espai de cerca.
+- $H_1$: El temps d'execució del planificador creix de manera lineal o sublineal amb l'augment de la mida del problema, indicant una gestió eficient de l'espai de cerca.
+
+Executarem problemes amb mides de mostra creixents (10, 20, ..., 50 reserves i 6, 12, .... 30 habitacions) repetint cada experiment 5 vegades per mitigar el soroll en la mesura del temps. Esperem observar una corba de temps ascendent però un percentatge d'assignacions estable al voltant del màxim teòric permès pel rati de 0.6. Els resultats obtinguts són els següents:
+
+<div class="image-row">
+  <div class="image-column">
+    <img src="./figures/ext1/2.png" alt="Gràfic de reserves assignades en l'extensió 1 amb mida creixent">
+    <div class="caption">Figura 7: Proporció de reserves assignades en funció de la mida del problema</div>
+  </div>
+</div>
+
+En primer lloc, s'observa una **invariable eficàcia resolutiva malgrat l'escalat**. Per a totes les mides de problema analitzades, des de les petites (10 reserves) fins a les mitjanes-grans (50 reserves), el planificador manté consistentment una taxa d'èxit del 100% (línia blava superior). Aquest rendiment evidencia que la capacitat del model per trobar assignacions òptimes no es degrada amb la mida de la instància; el sistema és perfectament capaç de navegar espais d'estats cada cop més vastos sense perdre la precisió necessària per satisfer la totalitat de la demanda, sempre que els recursos ho permetin.
+
+En segon lloc, el comportament del sistema exhibeix un **cost computacional clarament exponencial** a mesura que augmenta la dimensió del problema. A diferència de l'experiment anterior on el temps era constant, aquí les barres vermelles mostren un creixement accelerat: passem de respostes gairebé instantànies (102 ms per a 10 reserves) a temps significatius (3 segons per a 30 reserves) i finalment a costos elevats (gairebé 30 segons per a 50 reserves). Aquesta dada confirma la naturalesa explosiva de la complexitat combinatòria: afegir linealment més reserves i habitacions multiplica, no suma, les ramificacions de l'arbre de cerca que el planificador ha d'explorar.
+
+Finalment, és remarcable la **tensió entre qualitat i eficiència** revelada per aquestes dades. Mentre que la línia d'assignacions es manté impol·luta al 100%, el preu a pagar és un consum de temps que es dispara ràpidament. Això indica que el coll d'ampolla no és la "intel·ligència" del planificador per trobar la solució, sinó la seva velocitat per descartar camins invàlids en un espai de cerca que creix desmesuradament. Amb això podem deduir que, tot i que el model és robust en termes de qualitat (no falla ni una sola reserva), la seva escalabilitat temporal és limitada, suggerint la necessitat urgent d'optimitzacions en el domini (com precomputar incompatibilitats) per fer viables instàncies de mida industrial.
+
+Per tant, respecte a les nostres hipòtesis:
+
+- En l'escenari d'augment de mida, rebutgem $H_0$ i acceptem $H_1$, ja que el planificador demostra una capacitat notable per mantenir la qualitat de la solució (100% d'assignacions) independentment de la mida del problema.
+- Pel que fa a l'escalabilitat, acceptem $H_0$ i rebutgem $H_1$, ja que el temps d'execució del planificador creix de manera exponencial amb l'augment de la mida del problema, indicant una gestió ineficient de l'espai de cerca.
+
+#### 3.1.2.3 Possible problema 3: Afecta en quin punt de la reserva es concentrin les reserves? (principi, mig, final de mes)
+
+Center day (linia 42 del generador 1.1), enlloc del dia central podria ser dels primers o dels ultims.
 
 ## 3.2 Extensió 2
 
-S'afegeix un nou predicat vol-orientacio per a les reserves, que indica l'orientació que es desitja per a l'habitació assignada. A l'acció assigar habitació comprova que l'habitació tingui l'orientació demanada per la reserva. Com que volem maximitzar les assignacions, i és preferent assignar habitacions amb l'orientació demanada però no és imprescindible, fem que una reserva puntui 2 si es assigna una habitació amb l'orientació demanada i 1 si s'assigna una habitació amb una orientació diferent. Així, l'objectiu de maximitzar les assignacions es manté, però ara es prioritzen les assignacions que compleixin l'orientació demanada.
+Per aquesta extensió, s'afegeix la possibilitat de tenir preferències en les reserves, concretament l'orientació de l'habitació (nord, sud, est, oest). Aquestes preferències no són restrictives, és a dir, una reserva pot ser assignada a una habitació amb una orientació diferent de la demanada, però es prioritza assignar habitacions amb l'orientació desitjada per maximitzar la satisfacció del client. Partim de la primera extensió, on l'objectiu és maximitzar el nombre de reserves assignades, i afegim aquesta nova capa de preferències per millorar la qualitat de les assignacions.
 
 ### 3.2.1 Domini
+
+El domini `hotel-extensio2` és una evolució del domini de l'extensió 1, amb la incorporació de preferències d'orientació per a les reserves. Les principals diferències estructurals són les següents:
+
+1. Nous tipus i predicats introduïts
+
+   El **Domini Extensió 2** introdueix el concepte d'**orientació de les habitacions**. Mentre que l'Extensió 1 es limitava a gestionar conflictes temporals i restriccions de capacitat, la versió 2 afegeix preferències qualitatives dels clients. Això es materialitza mitjançant:
+
+   - **Nou tipus:** `orientacio`
+   - **Nous predicats:**
+   - `(orientada ?h - habitacio ?o - orientacio)`: Indica la orientació física d'una habitació (p.ex., nord, sud, vistes al mar)
+   - `(vol-orientacio ?r - reserva ?o - orientacio)`: Expressa la preferència d'una reserva per una orientació específica
+
+   Aquests predicats permeten modelar escenaris realistes on els clients tenen requisits addicionals més enllà de dates i capacitat, com ara preferir habitacions amb vistes o llum natural determinada.
+
+2. Descomposició de l'acció d'assignació
+
+   La diferència més significativa és l'**especialització de l'acció `assignar-habitacio`** en dues variants:
+
+   - `assignar-habitacio-orientada`:** Aquesta acció només s'executa quan hi ha **compatibilitat perfecta** entre la preferència del client i l'orientació de l'habitacio. Les precondicions inclouen:
+
+   ```pddl
+   (and (vol-orientacio ?r ?o) (orientada ?h ?o))
+   ```
+
+   Quan s'executa, la reserva es processa sense penalització (`total-descartades` no s'incrementa), reflectint que s'ha satisfet plenament la demanda del client.
+
+   - `assignar-habitacio-desorientada`:** Aquesta acció representa un **compromís subòptim**. Permet assignar una habitació tot i que NO coincideixi amb l'orientació desitjada:
+
+   ```pddl
+   (not (orientada ?h ?o))
+   ```
+
+   Per modelar aquest cost de qualitat, l'acció incrementa la funció objectiu: `(increase (total-descartades) 1)`. Això penalitza el pla, indicant que s'ha "perdut" satisfacció del client tot i haver assignat l'habitació.
+
+   És a dir, ara hi ha dues maneres d'assignar una habitació a una reserva: una que compleix la preferència d'orientació i una altra que no. Aquesta descomposició permet al planificador triar entre satisfer completament la demanda del client, mantenint la condició de l'orientació preferida, penalitzant si s'assigna una habitació amb orientació diferent, però igualment assignant l'habitació per maximitzar l'ocupació.
+
+3. Reajustament de les penalitzacions
+
+Aquesta diferència estableix implícitament una **jerarquia de decisions**: és preferible assignar una habitació amb orientació incorrecta (cost 1) que deixar la reserva sense processar (cost 2). El planificador, en minimitzar `total-descartades`, prioritzarà fer assignacions imperfectes abans que abandonar completament les reserves, així maximitzant l'ocupació tot i comprometre la qualitat.
 
 ### 3.2.2 Problemes
 
@@ -654,9 +721,26 @@ Per validar l'Extensió 2, s'han dissenyat tres experiments sintètics que aïll
 
 #### 3.2.2.1 Problema 1: El puzzle d'afinitats
 
-Demostrar que el planificador és capaç d'ordenar i intercanviar reserves per aconseguir la màxima puntuació global, en lloc de fer assignacions greedy (agafar la primera habitació lliure encara que no tingui l'orientació correcta). Una assignació tonta (greedy) podria posar reserves "Sud" a habitacions "Nord" i viceversa. Això donaria 1 punt per reserva. Puntuació total: $N$. L'assignació intel·ligent ha de creuar-les perfectament: "Nord" amb "Nord" i "Sud" amb "Sud". El planificador ha de "descobrir" que val la pena buscar la combinació perfecta.
+!!! cal pensar més
 
-Hipòtesi: el planificador serà capaç de maximitzar la puntuació global tenint en compte les orientacions demanades.
+Aquesta implementació busca demostrar que el planificador és capaç de reconèixer i optimitzar les assignacions creuades per maximitzar la satisfacció del client. En altres paraules, ha de ser capaç d'evitar penalitzacions innecessàries quan una assignació òptima és possible mitjançant l'intercanvi d'habitacions entre reserves. Per això,
+
+Per aïllar aquest comportament, dissenyem un escenari de "preferències creuades" on una assignació ingènua és possible però costosa. Generarem un problema prob_cross.pddl amb 2 habitacions i 2 reserves simultànies (mateixos dies), on:
+
+- Habitació 1 (h1): Orientada al NORD.
+- Habitació 2 (h2): Orientada al SUD.
+- Reserva 1 (r1): Demana orientació SUD.
+- Reserva 2 (r2): Demana orientació NORD.
+
+En aquest escenari:
+
+- Estratègia Greedy/Seqüencial: Si el planificador processa r1 i troba h1 lliure, l'hi podria assignar. Això és vàlid (per l'acció assignar-habitacio-desorientada) però incorre en un cost de 1. Quan després processi r2, només quedarà h2 lliure (també incorrecta), sumant un altre cost de 1. Cost Total = 2.
+- Estratègia Òptima: El planificador ha d'"adonar-se" que intercanviant les assignacions (r1->h2 i r2->h1), ambdues reserves obtenen la seva orientació desitjada. Això utilitza l'acció assignar-habitacio-orientada, que té cost 0. Cost Total = 0.
+
+Plantegem la següent hipòtesi per a aquest experiment:
+
+- $H_0$: El planificador assigna  indicant que actua de manera greedy i no optimitza les preferències d'orientació.
+- $H_1$: El planificador obté una puntuació total de 0, demostrant que realitza l'assignació creuada òptima i evita les penalitzacions.
 
 #### 3.2.2.2 Problema 2: Selecció VIP
 
@@ -675,9 +759,10 @@ Hipòtesi: el planificador serà capaç de sacrificar preferències per maximitz
 L'extensió 3 es presenta com una evolució de l'extensió 1. Com en aquesta última, hem d’assignar les reserves a les habitacions sense que hi hagi solapaments en les dates d’ocupació. Però ara, a més d’optimitzar el nombre de reserves assignades, també hem de minimitzar el desperdici de places, és a dir, procurar que les reserves ocupin habitacions amb una capacitat tan ajustada com sigui possible, evitant deixar places lliures innecessàries.
 
 ### 3.3.1 Domini
+
 El domini d'aquesta extensió és gairebé idèntic al de l'extensió 1:
 
-```
+```pddl
 (define (domain hotel-extensio3)
   (:requirements :typing :negative-preconditions :adl :fluents)
   (:types
@@ -728,18 +813,20 @@ El domini d'aquesta extensió és gairebé idèntic al de l'extensió 1:
   )
 )
 ```
+
 Com es pot observar, les principals diferències es troben en les funcions numèriques i en la mètrica d'optimització:
+
 - Hem mantingut la funció `total-reserves-descartades`, que ja s'utilitzava a l'extensió 1 per comptabilitzar les reserves que no es podien assignar.
 - Hem afegit una nova funció, `total-places-descartades`, que ens permet mesurar el nombre de places desaprofitades quan una reserva s'assigna a una habitació més gran del necessari.
 
 L'objectiu d'aquesta extensió és, per tant, minimitzar ambdues mètriques: evitar descartar reserves i reduir el desaprofitament d'espai en les habitacions.
 La modificació clau es troba dins de l'acció `assignar-habitacio`:
 
-```
+```pddl
 (increase (total-places-descartades)
          (- (capacitat ?h) (persones ?r)))
-
 ```
+
 Cada vegada que assignem una reserva a una habitació, incrementem `total-places-descartades` amb la diferència entre la capacitat de l’habitació i el nombre de persones de la reserva. D’aquesta manera, es fa un seguiment exacte de les places buides que queden en totes les habitacions.
 
 La resta del domini, incloses les accions i predicats, es manté igual que en l’extensió 1. Això permet preservar la lògica d’assignació sense solapaments mentre afegim la nova preocupació d’optimització del desperdici de places.

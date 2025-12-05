@@ -5,21 +5,16 @@ import os
 def generar_problema_hotel_orientacio(num_reservas, num_habitaciones, num_dias, seed=None, problem_name="hotel-orientacio"):
     """
     Genera un fitxer de problema PDDL compatible amb el domini amb Orientació.
-    Inclou:
-    - Fluents numèrics (capacitat, persones, total-assignades)
-    - Predicats d'orientació (orientada, vol-orientacio)
-    - Tipus 'orientacio' (nord, sud, est, oest)
     """
     if seed is not None:
         random.seed(seed)
 
     # --- Capçalera ---
     pddl = f"(define (problem {problem_name})\n"
-    pddl += "  (:domain hotel-extensio1)\n" # Nom del domini que m'has passat
+    pddl += "  (:domain hotel-extensio2)\n"
     pddl += "  (:requirements :typing :negative-preconditions :adl :fluents)\n\n"
 
     # --- Objectes ---
-    # Definim les orientacions com a constants o objectes
     orientacions = ["n", "s", "e", "o"]
     
     pddl += "  (:objects\n"
@@ -31,46 +26,55 @@ def generar_problema_hotel_orientacio(num_reservas, num_habitaciones, num_dias, 
 
     # --- Init ---
     pddl += "  (:init\n"
+    pddl += "    (= (total-descartades) 0)\n"
     
-    # 1. Mètrica inicial
-    pddl += "    (= (total-assignades) 0)\n\n"
+    # ---------------------------------------------------------
+    # GARANTIA D'ORIENTACIONS
+    # ---------------------------------------------------------
+    orientacions_pool = orientacions[:] 
+    while len(orientacions_pool) < num_habitaciones:
+        orientacions_pool.append(random.choice(orientacions))
+    random.shuffle(orientacions_pool)
 
-    # 2. Configuració Habitacions (Capacitat + Orientació Real)
-    pddl += "    ;; Habitacions: Capacitat i Orientació\n"
+    # 2. Configuració Habitacions
+    pddl += "    ;; Habitacions: Capacitat i Orientacio\n"
     for i in range(num_habitaciones):
         h_id = f"h{i+1}"
         cap = random.randint(1, 4)
-        
-        # Assignem una orientació aleatòria a l'habitació
-        orient_habitacio = random.choice(orientacions)
-        
+        orient_habitacio = orientacions_pool[i]
         pddl += f"    (= (capacitat {h_id}) {cap})\n"
         pddl += f"    (orientada {h_id} {orient_habitacio})\n"
     pddl += "\n"
 
-    # 3. Configuració Reserves (Persones + Preferència Orientació)
+    # 3. Configuració Reserves
     pddl += "    ;; Reserves: Persones i Preferència d'Orientació\n"
     for i in range(num_reservas):
         r_id = f"r{i+1}"
         pers = random.randint(1, 4)
-        
-        # Assignem quina orientació vol el client
         orient_pref = random.choice(orientacions)
-        
         pddl += f"    (= (persones {r_id}) {pers})\n"
         pddl += f"    (vol-orientacio {r_id} {orient_pref})\n"
     pddl += "\n"
 
-    # 4. Dies de reserva
+    # ---------------------------------------------------------
+    # 4. CANVI REALITZAT: Dia inici random + Durada random fins al final
+    # ---------------------------------------------------------
     pddl += "    ;; Calendari de reserves\n"
     for i in range(num_reservas):
         r = f"r{i+1}"
-        # Durada controlada (màxim 30% dels dies totals o 5 dies)
-        max_durada = max(1, int(num_dias * 0.3))
-        duracion = random.randint(1, max_durada)
         
-        ultim_dia_inici = max(1, num_dias - duracion + 1)
-        dia_inicio = random.randint(1, ultim_dia_inici)
+        # 1. Triem primer el dia d'inici (qualsevol dia excepte l'últim absolut, per tenir mínim 1 dia)
+        # Si num_dias és molt petit (ex: 1), forcem inici a 1.
+        if num_dias > 1:
+            dia_inicio = random.randint(1, num_dias - 1) 
+        else:
+            dia_inicio = 1
+
+        # 2. Calculem quants dies queden des d'aquest inici fins al final
+        dies_restants = num_dias - dia_inicio + 1
+        
+        # 3. La durada és un random entre 1 i els dies que queden
+        duracion = random.randint(1, dies_restants)
         
         for j in range(duracion):
             d = f"d{dia_inicio + j}"
@@ -79,41 +83,39 @@ def generar_problema_hotel_orientacio(num_reservas, num_habitaciones, num_dias, 
     pddl += "  )\n\n"
 
     # --- Goal ---
-    # Igual que l'extensió anterior, volem que totes estiguin processades
     pddl += "  (:goal (forall (?r - reserva) (processada ?r)))\n\n"
 
     # --- Metric ---
-    # Maximitzar punts (2 si coincideix orientació, 1 si no)
-    pddl += "  (:metric maximize (total-assignades))\n"
+    pddl += "  (:metric minimize (total-descartades))\n"
     
     pddl += ")\n"
-
     return pddl
 
-def generar_suite_orientacio():
-    """
-    Genera 5 problemes escalables per al domini amb orientació.
-    """
-    # Configuracions: (Nom, Reserves, Habitacions, Dies)
+
+def generar_suite_orientacio(base_seed=None):
+    # Configuracions de la suite (Exemple amb els 5 problemes estàndard)
     configuracions = [
-        ("prob0201", 3, 2, 4),     
-        ("prob0202", 6, 3, 7),     
-        ("prob0203", 12, 5, 15),   
-        ("prob0204", 25, 10, 30),  
-        ("prob0205", 50, 20, 45)   
+        ("prob0201", 30, 15, 30), 
     ]
 
     print("Generant suite de problemes amb ORIENTACIÓ...")
-    for conf in configuracions:
+    for i, conf in enumerate(configuracions):
         nom, r, h, d = conf
         nom_fitxer = f"./extensions/ext2/{nom}.pddl"
         
-        contingut = generar_problema_hotel_orientacio(r, h, d, seed=42, problem_name=nom)
+        current_seed = (base_seed + i) if base_seed is not None else None
+        
+        contingut = generar_problema_hotel_orientacio(r, h, d, seed=current_seed, problem_name=nom)
+        
+        # Assegurem que el directori existeix
+        os.makedirs(os.path.dirname(nom_fitxer), exist_ok=True)
         
         with open(nom_fitxer, "w") as f:
             f.write(contingut)
         
-        print(f" -> Generat {nom_fitxer}: {r} res, {h} hab, {d} dies.")
+        seed_msg = f"Seed: {current_seed}" if current_seed is not None else "Seed: Random"
+        print(f" -> Generat {nom_fitxer}: {r} res, {h} hab, {d} dies. [{seed_msg}]")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Generador PDDL Hotel amb Orientació")
@@ -122,13 +124,14 @@ if __name__ == '__main__':
     parser.add_argument("--habitaciones", type=int, default=3)
     parser.add_argument("--dias", type=int, default=10)
     parser.add_argument("--output", type=str, default="problema_orientacio.pddl")
+    parser.add_argument("--seed", type=int, default=None, help="Llavor per a la generació aleatòria.")
 
     args = parser.parse_args()
 
     if args.single:
-        contingut = generar_problema_hotel_orientacio(args.reservas, args.habitaciones, args.dias, seed=42)
+        contingut = generar_problema_hotel_orientacio(args.reservas, args.habitaciones, args.dias, seed=args.seed)
         with open(args.output, "w") as f:
             f.write(contingut)
-        print(f"Problema individual generat a: {args.output}")
+        print(f"Problema individual generat a: {args.output} (Seed: {args.seed})")
     else:
-        generar_suite_orientacio()
+        generar_suite_orientacio(base_seed=args.seed)

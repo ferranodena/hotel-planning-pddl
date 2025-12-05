@@ -1,4 +1,4 @@
-(define (problem problema-extensio1) (:domain hotel-extensio1)
+(define (problem problema-extensio2) (:domain hotel-extensio2)
   
   (:requirements :typing :negative-preconditions :adl :fluents)
 
@@ -26,7 +26,7 @@
     (vol-orientacio r2 s)
     (vol-orientacio r3 n)
 
-    (= (total-assignades) 0)
+    (= (total-descartades) 0)
     
     (= (capacitat h1) 2)
     (= (capacitat h2) 4)
@@ -40,5 +40,5 @@
   (:goal (forall (?r - reserva) (processada ?r)))
 
   (:metric 
-    maximize (total-assignades))
+    minimize (total-descartades))
 )
