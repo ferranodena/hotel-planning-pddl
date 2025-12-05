@@ -48,7 +48,7 @@
 
   (:metric
     minimize
-      (+ (* 10 (total-reserves-descartades))
+      (+ (* 1 (total-reserves-descartades))
          (total-places-descartades))
   )
 )

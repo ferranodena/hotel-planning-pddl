@@ -1,0 +1,22 @@
+========================================
+       INFORME DE RESULTATS (EXT 3)     
+========================================
+
+COST DE LA MÈTRICA (PENALITZACIÓ TOTAL): N/A
+(Recorda: Cost alt = Dolent. Inclou reserves descartades i places buides)
+
+--- ESTADÍSTIQUES ---
+TOTAL RESERVES ASSIGNADES:     6
+TOTAL RESERVES DESCARTADES:    0
+TOTAL HABITACIONS UTILITZADES: 5
+
+--- DETALL ASSIGNACIONS ---
+  RESERVA R1  -->  HABITACIÓ H1
+  RESERVA R3  -->  HABITACIÓ H2
+  RESERVA R4  -->  HABITACIÓ H3
+  RESERVA R5  -->  HABITACIÓ H4
+  RESERVA R2  -->  HABITACIÓ H4
+  RESERVA R6  -->  HABITACIÓ H5
+
+--- DETALL DESCARTADES ---
+  (Cap reserva descartada)
