@@ -2,21 +2,18 @@
        INFORME DE RESULTATS (EXT 3)     
 ========================================
 
-COST DE LA MÈTRICA (PENALITZACIÓ TOTAL): N/A
-(Recorda: Cost alt = Dolent. Inclou reserves descartades i places buides)
+COST REAL TOTAL: 22
+PES UTILITZAT PER DESCARTADES: 10
+----------------------------------------
+--> PLACES DESPERDICIADES: 2
+--> PENALITZACIÓ (Descartades * Pes): 2
 
---- ESTADÍSTIQUES ---
-TOTAL RESERVES ASSIGNADES:     6
-TOTAL RESERVES DESCARTADES:    0
-TOTAL HABITACIONS UTILITZADES: 5
+Assignades: 2 | Descartades: 2 | Habitacions Obertes: 2
 
 --- DETALL ASSIGNACIONS ---
-  RESERVA R1  -->  HABITACIÓ H1
-  RESERVA R3  -->  HABITACIÓ H2
-  RESERVA R4  -->  HABITACIÓ H3
-  RESERVA R5  -->  HABITACIÓ H4
-  RESERVA R2  -->  HABITACIÓ H4
-  RESERVA R6  -->  HABITACIÓ H5
+  RESERVA R2 --> HABITACIÓ H1
+  RESERVA R4 --> HABITACIÓ H2
 
 --- DETALL DESCARTADES ---
-  (Cap reserva descartada)
+  RESERVA R1 DESCARTADA
+  RESERVA R3 DESCARTADA

@@ -68,5 +68,5 @@
 
   (:goal (forall (?r - reserva) (processada ?r)))
 
-  (:metric minimize (+ (total-reserves-descartades) (total-places-descartades)))
+  (:metric minimize (+ (* 10 (total-reserves-descartades)) (total-places-descartades)))
 )

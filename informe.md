@@ -884,8 +884,45 @@ Cada vegada que assignem una reserva a una habitació, incrementem `total-places
 La resta del domini, incloses les accions i predicats, es manté igual que en l’extensió 1. Això permet preservar la lògica d’assignació sense solapaments mentre afegim la nova preocupació d’optimització del desperdici de places.
 
 ### 3.3.2 Problemes
-
+Per tal de validar l’extensió 3, es duran a terme diversos experiments sistemàtics amb l’objectiu d’analitzar en profunditat com la ponderació de les mètriques afecta el comportament del planificador i la qualitat dels plans obtinguts, així com d’avaluar la seva capacitat per resoldre instàncies de major complexitat estructural i dimensional.
 #### 3.3.2.1 Problema 1
+Aquest primer experiment té com a objectiu determinar la importància que tenen les ponderacions en les solucions obtingudes als problemes. 
+Per a realitzarlo, utilitzarem el problema definit a l'arxiu `experiment1.pddl`. Aquest problema inclou quatre reserves amb diferents requeriments de places i dues habitacions amb capacitats limitades, distribuïdes al llarg de tres dies. Els dies de les reserves presenten un alt grau de solapament, generant conflictes naturals per l’assignació. En el primer dia, tres reserves (r1, r2 i r3) competeixen per només dues habitacions amb capacitats limitades, de manera que no totes les reserves poden ser assignades sense generar conflictes. El segon dia és encara més complex, amb quatre reserves que volen ocupar simultàniament les dues habitacions disponibles, superant clarament la capacitat combinada. Això implica que el planificador ha de prendre decisions crítiques sobre quines reserves assignar i quines descartar, ja que no és possible allotjar totes les reserves sense violar les restriccions de capacitat. El tercer dia només conté una reserva, eliminant els conflictes per a aquest dia, però les decisions preses en els dies anteriors afecten el cost total del pla. Aquest problema és clarament no trivial, ja que no es pot resoldre de manera directa sense un raonament combinatori. Les múltiples opcions legals disponibles per assignar reserves a les habitacions impliquen que el planificador ha de considerar diferents combinacions per minimitzar el cost definit per la mètrica. Les restriccions de capacitat, combinades amb els solapaments de dies, creen un espai d’estats amb diversos camins possibles cap al goal, on cada camí té un cost diferent segons quines reserves es descarten i quantes places sobrants queden. En aquest escenari, el planificador ha de trobar un equilibri entre descartar el mínim nombre de reserves i utilitzar eficientment les habitacions segons la ponderació que escollim. La combinació de dies solapats i capacitats limitades genera una situació on no hi ha una única solució òptima evident i on cada decisió té implicacions sobre els dies següents. Per tant, aquest problema constitueix un cas representatiu d’escenaris amb conflictes intensos, on les decisions de planificació han de ser estratègiques i consideren simultàniament les restriccions de capacitat, els solapaments de dies i la mètrica combinada de cost.
+Com s'especifica a l'enunciat, hem de prioritzar el número de reserves assignaes a habitacións a el nombre de places d'habitacions ocupades, per tant, podem deduir que la mètrica `total-reserves-descartades` tindrà un pes superior a `total-places-descartades`. Per tant, una bona decisió seria deixar el coeficient de `total-reserves-descartades` a 1, i anar variant l'altre. En aquest experiment, executarem diverses instàncies del problema amb els pesos 1, 10 i 100 respectivament, per veure si hi ha alguna diferència en els resultats.
+El script que utilitzarem per a generar la solució serà `ola.py`. Aquest ens donarà informació adicional que a primera vista no podem veure al executar-ho amb metricff directament, com el nombre de reserves descartades o el cost del problema.
+
+Formulem les seguents hipòtesis:
+- $H_0$: La magnitut del pes no afecta al resultat del planificador
+- $H_1$: La magnitut del pes afecta en el resultat.
+
+Al executar el programa amb els pesos corresponents es generen els resultats en els arxius `solucio_final_1`, `solucio_final_10`, `solucio_final_100`. Analitzant-les, podem veure això:
+
+```bash
+       INFORME DE RESULTATS (EXT 3)     
+========================================
+
+COST REAL TOTAL: 4-22-202
+PES UTILITZAT PER DESCARTADES: 1
+----------------------------------------
+--> PLACES DESPERDICIADES: 2
+--> PENALITZACIÓ (Descartades * Pes): 2
+
+Assignades: 2 | Descartades: 2 | Habitacions Obertes: 2
+
+--- DETALL ASSIGNACIONS ---
+  RESERVA R2 --> HABITACIÓ H1
+  RESERVA R4 --> HABITACIÓ H2
+
+--- DETALL DESCARTADES ---
+  RESERVA R1 DESCARTADA
+  RESERVA R3 DESCARTADA
+```
+On el cost és 4 quan el pes és 1, 22 quan és 10 i 202 quan és 100.
+Observem que la solució obtinguda és correcte dincs del marc de les restriccions definides pel domini. Només s'han pogut assignar dues reserves (R2 i R4) mentre que les altres dues (R1 i R3) han estat descartades. Aquestes assignacions respecten les capacitats de les habitacions i els solapaments de dies, garantint que no hi hagi conflictes d’ocupació entre reserves. Les habitacions obertes (H1 i H2) s’han utilitzat de manera eficient segons les restriccions disponibles.
+Però, observem també que **canviar el pes no modifica la solució**. Les reserves assignades i les reserves descartades continuen sent les mateixes. L'única variable que canvia és el cost total calculat, que augmenta proporcionalment al pes establert, tal comm preveu la mètrica definida al PDDL.
+Això ens indica que la hipòtesi nul.la és correcte, però abans de concloure l'experiment, provme amb una altra instància de problema, que sigui molt més reduit.
+
+
 
 #### 3.3.2.2 Problema 2
 

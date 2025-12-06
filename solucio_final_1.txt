@@ -2,8 +2,8 @@
        INFORME DE RESULTATS (EXT 3)     
 ========================================
 
-COST REAL TOTAL: 202
-PES UTILITZAT PER DESCARTADES: 100
+COST REAL TOTAL: 4
+PES UTILITZAT PER DESCARTADES: 1
 ----------------------------------------
 --> PLACES DESPERDICIADES: 2
 --> PENALITZACIÓ (Descartades * Pes): 2
