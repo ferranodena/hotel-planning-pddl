@@ -294,7 +294,6 @@ font-family: Helvetica, Arial, sans-serif;
   - [3.2.2 Problemes](#322-problemes)
     - [3.2.2.1 Problema 1: El puzzle d'afinitats](#3221-problema-1-el-puzzle-dafinitats)
     - [3.2.2.2 Problema 2: Selecció VIP](#3222-problema-2-selecció-vip)
-    - [3.2.2.3 Problema 3: L'Agent de Viatges Flexible](#3223-problema-3-lagent-de-viatges-flexible)
 - [3.3 Extensió 3](#33-extensió-3)
   - [3.3.1 Domini](#331-domini)
   - [3.3.2 Problemes](#332-problemes)
@@ -721,7 +720,7 @@ Per validar l'Extensió 2, s'han dissenyat tres experiments sintètics que aïll
 
 #### 3.2.2.1 Problema 1: El puzzle d'afinitats
 
-Per demostrar que el planificador és capaç d'optimitzar les assignacions tenint en compte les preferències d'orientació, especialment en situacions on les preferències són creuades entre reserves, crearem un escenari amb 3 reserves, 2 habitacions i 2 dies. Jugarem amb les preferències d'orientació i de dies per veure si el planificador pot trobar la solució òptima mitjançant assignacions creuades. Totes les reserves tenen la mateixa capacitat (2 persones) i totes les habitacions també (capacitat 2), per tant, la capacitat no és un factor limitant en aquest experiment.
+Per demostrar que el planificador és capaç d'optimitzar les assignacions tenint en compte les preferències d'orientació, especialment en situacions on les preferències són creuades entre reserves, crearem un escenari amb 3 reserves, 2 habitacions i 2 dies. Jugarem amb les preferències d'orientació i de dies per veure si el planificador pot trobar la solució òptima mitjançant assignacions creuades. Totes les reserves tenen la mateixa capacitat (2 persones) i totes les habitacions també (capacitat 2), per tant, la capacitat no és un factor limitant en aquest experiment. Plantegem el següent escenari:
 
 Primer de tot, veurem si el planificador prioritza les assignacions que compleixen les preferències d'orientació. És a dir, la ``r1`` i ``r2`` tenen preferències d'orientació diferents i coincidents en dies i orientacions. La reserva ``r3`` té una preferència d'orientació diferent però coincideix en dies amb ``r1``. L'objectiu és veure si el planificador pot assignar ``r1`` i ``r2`` a les habitacions que compleixen les seves preferències d'orientació, i assignar ``r3`` a l'habitació restant, encara que no compleixi la seva preferència d'orientació:
 
@@ -792,19 +791,81 @@ El resultat obtingut ha sigut un script de Python que genera problemes seguint a
 
 Si ``prob_match=1.0``, la demanda segueix perfectament l'oferta. Si ``prob_match=0.0``, la demanda és independent de l'oferta.
 
+Sobre aquesta base, plantegem el següent contrast d'hipòtesis per a validar la implementació del planificador en aquest domini:
+
+- $H_0$: El planificador no és capaç de minimitzar la puntuació total (penalitzacions) en funció de la probabilitat de coincidència d'orientació.
+- $H_1$: El planificador és capaç de minimitzar la puntuació total (penalitzacions) a mesura que augmenta la probabilitat de coincidència d'orientació.
+
+Com també volem veure si el rendiment es veu afectat per la mida del problema, plantegem un segon contrast d'hipòtesis:
+
+- $H_0$: El temps d'execució del planificador creix de manera no lineal amb l'augment del nombre d'habitacions i reserves, indicant una gestió ineficient de l'espai de cerca.
+- $H_1$: El temps d'execució del planificador creix de manera lineal o sublineal amb l'augment del nombre d'habitacions i reserves, indicant una gestió eficient de l'espai de cerca.
+
 Per tant, provem d'experimentar amb diferents valors de ``prob_match`` (0.0, 0.1, 0.2, ..., 1.0) per veure com afecta la capacitat del planificador per minimitzar la puntuació total (penalitzacions). Per aïllar l'impacte de les preferències d'orientació, mantenim el nombre d'habitacions i reserves fix de 30 i 18 respectivament, perquè ja sabem, per experiments anteriors, que el planificador és capaç de gestionar aquesta mida eficientment però hi ha certa competència entre reserves. També mantenim el nombre de dies fixat a 30. Mesurarem la puntuació total obtinguda pel planificador per a cada valor de ``prob_match``, repetint cada experiment 10 vegades per mitigar el soroll en la mesura. Els resultats obtinguts són els següents:
+
+<div class="image-row">
+  <div class="image-column">
+    <img src="./figures/ext2/1.png" alt="Gràfic de puntuació total en l'extensió 2">
+    <div class="caption">Figura 8: Puntuació total (penalitzacions) en funció de la probabilitat de coincidència d'orientació</div>
+  </div>
+</div>
+
+En primer lloc, s'observa una **correlació directa i significativa entre l'alineació de la demanda i la qualitat de la solució**. Quan la probabilitat de coincidència (`match_prob`) supera el llindar del 0.5, la puntuació de penalització (línia vermella) cau, passant de valors alts entorn de 3.5 - 4.0 a mínims de 0.8 - 2.0. Aquesta millora substancial reflecteix que, quan les preferències dels usuaris s'alineen amb l'oferta estructural de l'hotel, el planificador és capaç de trobar assignacions òptimes (orientades) amb molta més facilitat, minimitzant la necessitat de recórrer a solucions de compromís o descartar reserves. Destaquem com a excepció el valor de 0.7. Si tracem a sobre la línia de tendència, veiem que segueix la mateixa corba decreixent que la resta de punts, per tant, podem atribuir aquesta desviació a la variabilitat inherent en problemes estocàstics, com és aquest cas.
+
+En segon lloc, l'anàlisi del cost computacional revela una **independència respecte a la qualitat del resultat**. Les barres blaves, que representen el temps d'execució, oscil·len de manera aletòria entre els 1800ms i els 3300ms sense seguir un patró clar associat a la dificultat del problema (`match_prob`). Això suggereix que l'esforç de cerca del planificador es manté relativament constant: l'algorisme explora l'espai d'estats amb una profunditat similar tant si acaba trobant una solució "perfecta" (penalització baixa) com si es veu forçat a acceptar solucions subòptimes.
+
+Finalment, és destacable la **zona de turbulència en escenaris de baixa coincidència** (0.0 - 0.5). En aquest rang, on la demanda és més caòtica o directament oposada a l'oferta, el sistema pateix per mantenir la qualitat, mostrant penalitzacions elevades i fluctuants (pics de fins a 4.8). Però, fins i tot en aquestes condicions adverses, el planificador no en fa una mala gestió, ja que en el nostre cas, que tenim 12 reserves i 20 habitacions, la puntuació màxima possible és de $12 \times 2 = 24$, i el pitjor cas observat és 4.2, és a dir, una penalització d'un $\frac{4.2}{24} \approx 18$% que és molt millor del que es podria esperar en un escenari tan desalineat, demostrant la seva capacitat per trobar solucions raonables fins i tot quan les preferències són difícils de satisfer.
+
+Visualitzem també el Mosaic Plot per veure la distribució de les assignacions segons la seva sortida:
+
+<div class="image-row">
+  <div class="image-column">
+    <img src="./figures/ext2/2.png" alt="Mosaic plot de l'extensió 2">
+    <div class="caption">Figura 9: Mosaic plot de les assignacions</div>
+  </div>
+</div>
+
+En primer lloc, s'observa una **transició clara en la qualitat de les assignacions**. A mesura que la probabilitat de coincidència (`match_prob`) augmenta, la proporció de reserves assignades a la seva orientació òptima (verd) creix substancialment, passant d'un 72.5% a l'escenari més caòtic (0.0) fins al 95.0% a l'escenari ideal (1.0). Aquesta tendència positiva confirma que el sistema aprofita eficaçment la disponibilitat de recursos alineats amb la demanda per maximitzar la satisfacció de les preferències, reduint progressivament la necessitat de recórrer a solucions de compromís (taronja). La franja taronja, que representa les reserves assignades a una habitació amb orientació diferent a la desitjada, actua com un mecanisme de seguretat crític. En els escenaris de major desalineació (0.0 - 0.4), aquesta categoria absorbeix entre un 25% i un 33% de la demanda total. Això demostra la "intel·ligència" del model de penalització: davant la manca d'habitacions perfectes, el planificador prefereix sistemàticament una assignació subòptima (penalització baixa) abans que deixar el client sense habitació.
+
+També és remarcable la **minimització de les fallides totals**. La franja vermella (reserves descartades) és pràcticament inexistent en la majoria dels casos, apareixent només de manera residual en els escenaris més adversos (0.0, 0.1, 0.8). Això evidencia la robustesa del planificador: fins i tot quan la demanda és completament aleatòria o contrària a l'oferta, el sistema troba la manera d'encabir gairebé el 100% de les reserves, ja sigui satisfent la preferència o negociant-la, però evitant el pitjor escenari possible que seria el rebuig de la reserva.
+
+Per tant, respecte a les nostres hipòtesis:
+
+- En l'escenari de preferències d'orientació, rebutgem $H_0$ i acceptem $H_1$, ja que el planificador demostra una capacitat notable per minimitzar la puntuació total (penalitzacions) a mesura que augmenta la probabilitat de coincidència d'orientació.
+- Pel que fa a l'escalabilitat, acceptem $H_0$ i rebutgem $H_1$, ja que el temps d'execució del planificador no mostra una tendència clara amb l'augment del nombre d'habitacions i reserves, indicant una gestió ineficient de l'espai de cerca.
 
 #### 3.2.2.2 Problema 2: Selecció VIP
 
-Demostrar que, davant l'escassetat de recursos, el planificador sap prioritzar els clients que encaixen millor (els que donen 2 punts) i deixar fora o en pitjors habitacions els que no encaixen (els que donarien 1 punt), o simplement descartar els que aporten menys valor si no hi ha lloc per a tothom. Hi ha un coll d'ampolla: només $K$ habitacions disponibles (totes, per exemple, orientació Nord). La meitat de les reserves volen Nord (match = 2 punts). L'altra meitat volen Sud (mismatch = 1 punt). Com que no hi ha lloc per a tothom (només hi ha $K$ llocs), el planificador ha d'omplir l'hotel només amb les reserves que volen Nord. Puntuació òptima: $2 \times K$. Si s'equivoqués i agafés algú de Sud, perdria punts. Aquest experiment demostra que el sistema entén el "cost d'oportunitat".
+Aquest segon problema pretén fer una combinació del ![problema 1 de l'extensió 1](####3.1.2.1-Problema-1:-Dilema-de-l'optimització) amb el ![problema 2 de l'extensió 2](####3.2.2.1-Problema-1:-El-puzzle-d'afinitats). L'objectiu és veure si el planificador és capaç de maximitzar les assignacions tenint en compte tant les preferències d'orientació sota diferents marges de coincidència. Per això n'anomenem "Selecció VIP", ja que en aquest cas, les reserves assignades correctament en alta coincidència i amb orientació correcta, poden ser considerades exclusives, si hi ha més demanda que oferta. Per tant, combinem ambdós generadors de problemes per crear un nou generador que permeti controlar tant la proporció de reserves que poden ser assignades (com en l'extensió 1) com la proporció de reserves que tenen preferències d'orientació que coincideixen amb les habitacions disponibles (com en l'extensió 2). Aquest nou generador, que farem també amb l'ajuda de la LLM **Gemini 3 Pro**, ha de permetre ajustar aquests dos paràmetres d'entrada per crear escenaris amb diferents nivells de competència i alineació entre demanda i oferta. Analitzarem el rendiment del planificador en aquest nou escenari mitjançant un contrast d'hipòtesis similar al de l'extensió 2:
 
-Hipòtesi: el planificador serà capaç de prioritzar les reserves que aporten més valor en situacions d'escassetat de recursos.
+- $H_0$: El planificador no és capaç de minimitzar la puntuació total (penalitzacions) en funció de la probabilitat de coincidència d'orientació i la proporció de reserves assignables.
+- $H_1$: El planificador és capaç de minimitzar la puntuació total (penalitzacions) a mesura que augmenta la probabilitat de coincidència d'orientació i la proporció de reserves assignables.
 
-#### 3.2.2.3 Problema 3: L'Agent de Viatges Flexible
+Per tant, provem d'experimentar amb diferents valors de ``prob_match`` (0.0, 0.1, 0.2, ..., 1.0) i diferents valors de ``assignable_ratio`` (0.4, 0.5, 0.6, 0.7, 0.8) per veure com afecta la capacitat del planificador per minimitzar la puntuació total (penalitzacions). Mantenim el nombre d'habitacions i reserves fix de 5 i 20 respectivament, i el nombre de dies fixat a 25, que són els nombres que hem trobat gràcies al problema 1 i que ens permeten executar problemes de manera eficient. Mesurarem la puntuació total obtinguda pel planificador per a cada combinació de valors, repetint cada experiment 5 vegades per mitigar el soroll en la mesura. Els resultats obtinguts són els següents:
 
-Demostrar que el sistema entén que l'orientació (preferència) és menys important que la capacitat (restricció dura), però que intenta satisfer totes dues quan pot. Hi ha $N$ reserves i $N$ habitacions. Totes les reserves tenen una preferència d'orientació que coincideix amb una habitació (match = 2 punts). Però algunes reserves tenen una capacitat que només encaixa amb una habitació de diferent orientació (mismatch = 1 punt). Per exemple, la reserva r1 necessita capacitat 4 i vol orientació Nord (habitació h1). Però l'habitació h1 té capacitat 2 (no serveix). L'única habitació amb capacitat 4 és h2, però té orientació Sud (mismatch). El planificador ha de triar entre no assignar r1 (0 punts) o assignar-la a h2 (1 punt). L'assignació òptima és sacrificar algunes preferències per satisfer totes les restriccions dures.
+Pel que fa a la puntuació, el heatmap obtingut és el següent:
 
-Hipòtesi: el planificador serà capaç de sacrificar preferències per maximitzar l'ocupació complint les restriccions dures.
+<div class="image-row">
+  <div class="image-column">
+    <img src="./figures/ext2/3.png" alt="Gràfic de puntuació total en l'extensió 2 - problema 2">
+    <div class="caption">Figura 10: Puntuació total (penalitzacions) en funció de la probabilitat de coincidència d'orientació i la proporció de reserves assignables</div>
+  </div>
+</div>
+
+Pel que fa al temps d'execució, el heatmap obtingut és el següent:
+
+<div class="image-row">
+  <div class="image-column">
+    <img src="./figures/ext2/4.png" alt="Gràfic de temps d'execució en l'extensió 2 - problema 2">
+    <div class="caption">Figura 11: Temps d'execució en funció de la probabilitat de coincidència d'orientació i la proporció de reserves assignables</div>
+  </div>
+</div>
+
+En primer lloc, el mapa de calor de qualitat (figura 10) confirma que **la qualitat de la solució és summament sensible a la combinació de factors**. Quan la ràtio de conflicte és baixa (eix Y: 0.0 - 0.2) i el match és alt (eix X: 0.8 - 1.0), el sistema aconsegueix puntuacions d'excel·lència (valors verds al voltant de 10-12), indicant que pot satisfer gairebé totes les preferències d'orientació. Per contra, en l'escenari de "tempesta perfecta" (Conflicte alt > 0.9 i Match baix < 0.2), la penalització es dispara a nivells crítics (vermell intens, valors propers a 30), suggerint que el sistema es veu obligat a sacrificar massivament la qualitat (desorientacions i descarts) per encabir les reserves en un calendari saturat i qualitativament hostil.
+
+En segon lloc, l'anàlisi temporal (figura 11) revela una **resiliència sorprenent del cost computacional**. Tot i que s'observen petites variacions, el temps de resolució es manté majoritàriament estable en una franja de 300-450ms, sense mostrar un patró d'explosió exponencial ni tan sols en els escenaris més complexos (cantonada superior esquerra). Això és contraintuïtiu, ja que normalment els problemes més constrets (alt conflicte + baix match) requereixen més cerca (backtracking). Aquesta estabilitat suggereix que l'heurística del planificador és capaç de detectar ràpidament quan una branca no té sortida (poda eficient) o bé troba solucions de compromís (desorientades) amb la mateixa facilitat algorítmica amb què troba solucions òptimes.
+
+Finalment, destaca una **zona de transició crítica entorn del conflicte 0.5 - 0.6**. En aquest punt intermig, veiem com el color del mapa de qualitat comença a degradar-se més ràpidament (passant de grocs a taronges) a mesura que ens movem cap a l'esquerra (menys match). Això indica que hi ha un punt d'inflexió on la pressió temporal comença a "escanyar" la flexibilitat qualitativa: per sota d'aquest nivell de conflicte, el sistema encara té marge de maniobra per jugar al "tetris" i col·locar la gent on vol; per sobre, l'espai és tan limitat que la prioritat passa a ser simplement "trobar un lloc", i la qualitat de l'orientació esdevé un luxe que es sacrifica ràpidament.
 
 ## 3.3 Extensió 3
 
@@ -884,14 +945,18 @@ Cada vegada que assignem una reserva a una habitació, incrementem `total-places
 La resta del domini, incloses les accions i predicats, es manté igual que en l’extensió 1. Això permet preservar la lògica d’assignació sense solapaments mentre afegim la nova preocupació d’optimització del desperdici de places.
 
 ### 3.3.2 Problemes
+
 Per tal de validar l’extensió 3, es duran a terme diversos experiments sistemàtics amb l’objectiu d’analitzar en profunditat com la ponderació de les mètriques afecta el comportament del planificador i la qualitat dels plans obtinguts, així com d’avaluar la seva capacitat per resoldre instàncies de major complexitat estructural i dimensional.
+
 #### 3.3.2.1 Problema 1
-Aquest primer experiment té com a objectiu determinar la importància que tenen les ponderacions en les solucions obtingudes als problemes. 
+
+Aquest primer experiment té com a objectiu determinar la importància que tenen les ponderacions en les solucions obtingudes als problemes.
 Per a realitzarlo, utilitzarem el problema definit a l'arxiu `experiment1.pddl`. Aquest problema inclou quatre reserves amb diferents requeriments de places i dues habitacions amb capacitats limitades, distribuïdes al llarg de tres dies. Els dies de les reserves presenten un alt grau de solapament, generant conflictes naturals per l’assignació. En el primer dia, tres reserves (r1, r2 i r3) competeixen per només dues habitacions amb capacitats limitades, de manera que no totes les reserves poden ser assignades sense generar conflictes. El segon dia és encara més complex, amb quatre reserves que volen ocupar simultàniament les dues habitacions disponibles, superant clarament la capacitat combinada. Això implica que el planificador ha de prendre decisions crítiques sobre quines reserves assignar i quines descartar, ja que no és possible allotjar totes les reserves sense violar les restriccions de capacitat. El tercer dia només conté una reserva, eliminant els conflictes per a aquest dia, però les decisions preses en els dies anteriors afecten el cost total del pla. Aquest problema és clarament no trivial, ja que no es pot resoldre de manera directa sense un raonament combinatori. Les múltiples opcions legals disponibles per assignar reserves a les habitacions impliquen que el planificador ha de considerar diferents combinacions per minimitzar el cost definit per la mètrica. Les restriccions de capacitat, combinades amb els solapaments de dies, creen un espai d’estats amb diversos camins possibles cap al goal, on cada camí té un cost diferent segons quines reserves es descarten i quantes places sobrants queden. En aquest escenari, el planificador ha de trobar un equilibri entre descartar el mínim nombre de reserves i utilitzar eficientment les habitacions segons la ponderació que escollim. La combinació de dies solapats i capacitats limitades genera una situació on no hi ha una única solució òptima evident i on cada decisió té implicacions sobre els dies següents. Per tant, aquest problema constitueix un cas representatiu d’escenaris amb conflictes intensos, on les decisions de planificació han de ser estratègiques i consideren simultàniament les restriccions de capacitat, els solapaments de dies i la mètrica combinada de cost.
 Com s'especifica a l'enunciat, hem de prioritzar el número de reserves assignaes a habitacións a el nombre de places d'habitacions ocupades, per tant, podem deduir que la mètrica `total-reserves-descartades` tindrà un pes superior a `total-places-descartades`. Per tant, una bona decisió seria deixar el coeficient de `total-reserves-descartades` a 1, i anar variant l'altre. En aquest experiment, executarem diverses instàncies del problema amb els pesos 1, 10 i 100 respectivament, per veure si hi ha alguna diferència en els resultats.
 El script que utilitzarem per a generar la solució serà `ola.py`. Aquest ens donarà informació adicional que a primera vista no podem veure al executar-ho amb metricff directament, com el nombre de reserves descartades o el cost del problema.
 
 Formulem les seguents hipòtesis:
+
 - $H_0$: La magnitut del pes no afecta al resultat del planificador
 - $H_1$: La magnitut del pes afecta en el resultat.
 
@@ -917,12 +982,11 @@ Assignades: 2 | Descartades: 2 | Habitacions Obertes: 2
   RESERVA R1 DESCARTADA
   RESERVA R3 DESCARTADA
 ```
+
 On el cost és 4 quan el pes és 1, 22 quan és 10 i 202 quan és 100.
 Observem que la solució obtinguda és correcte dincs del marc de les restriccions definides pel domini. Només s'han pogut assignar dues reserves (R2 i R4) mentre que les altres dues (R1 i R3) han estat descartades. Aquestes assignacions respecten les capacitats de les habitacions i els solapaments de dies, garantint que no hi hagi conflictes d’ocupació entre reserves. Les habitacions obertes (H1 i H2) s’han utilitzat de manera eficient segons les restriccions disponibles.
 Però, observem també que **canviar el pes no modifica la solució**. Les reserves assignades i les reserves descartades continuen sent les mateixes. L'única variable que canvia és el cost total calculat, que augmenta proporcionalment al pes establert, tal comm preveu la mètrica definida al PDDL.
 Això ens indica que la hipòtesi nul.la és correcte, però abans de concloure l'experiment, provme amb una altra instància de problema, que sigui molt més reduit.
-
-
 
 #### 3.3.2.2 Problema 2
 
