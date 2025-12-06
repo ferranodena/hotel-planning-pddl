@@ -721,26 +721,78 @@ Per validar l'Extensió 2, s'han dissenyat tres experiments sintètics que aïll
 
 #### 3.2.2.1 Problema 1: El puzzle d'afinitats
 
-!!! cal pensar més
+Per demostrar que el planificador és capaç d'optimitzar les assignacions tenint en compte les preferències d'orientació, especialment en situacions on les preferències són creuades entre reserves, crearem un escenari amb 3 reserves, 2 habitacions i 2 dies. Jugarem amb les preferències d'orientació i de dies per veure si el planificador pot trobar la solució òptima mitjançant assignacions creuades. Totes les reserves tenen la mateixa capacitat (2 persones) i totes les habitacions també (capacitat 2), per tant, la capacitat no és un factor limitant en aquest experiment.
 
-Aquesta implementació busca demostrar que el planificador és capaç de reconèixer i optimitzar les assignacions creuades per maximitzar la satisfacció del client. En altres paraules, ha de ser capaç d'evitar penalitzacions innecessàries quan una assignació òptima és possible mitjançant l'intercanvi d'habitacions entre reserves. Per això,
+Primer de tot, veurem si el planificador prioritza les assignacions que compleixen les preferències d'orientació. És a dir, la ``r1`` i ``r2`` tenen preferències d'orientació diferents i coincidents en dies i orientacions. La reserva ``r3`` té una preferència d'orientació diferent però coincideix en dies amb ``r1``. L'objectiu és veure si el planificador pot assignar ``r1`` i ``r2`` a les habitacions que compleixen les seves preferències d'orientació, i assignar ``r3`` a l'habitació restant, encara que no compleixi la seva preferència d'orientació:
 
-Per aïllar aquest comportament, dissenyem un escenari de "preferències creuades" on una assignació ingènua és possible però costosa. Generarem un problema prob_cross.pddl amb 2 habitacions i 2 reserves simultànies (mateixos dies), on:
+```bash
+...
+step    0: ASSIGNAR-HABITACIO-ORIENTADA R2 H2 S
+        1: DESCARTAR-RESERVA R3
+        2: ASSIGNAR-HABITACIO-ORIENTADA R1 H1 N
+...
+```
 
-- Habitació 1 (h1): Orientada al NORD.
-- Habitació 2 (h2): Orientada al SUD.
-- Reserva 1 (r1): Demana orientació SUD.
-- Reserva 2 (r2): Demana orientació NORD.
+Com es pot veure, el planificador ha assignat ``r1`` i ``r2`` a les habitacions que compleixen les seves preferències d'orientació, i ha descartat ``r3``, ja que no hi havia habitacions disponibles que complissin la seva preferència d'orientació. Això demostra que el planificador prioritza les assignacions que compleixen les preferències d'orientació.
 
-En aquest escenari:
+Modifiquem ara l'escenari per veure si el planificador és capaç d'optimitzar les assignacions mitjançant assignacions creuades. En aquest cas, les preferències d'orientació de ``r1`` i ``r2`` són creuades, és a dir, r1 prefereix una orientació que només està disponible per a ``r2`` i viceversa. L'objectiu és veure si el planificador pot trobar la solució òptima mitjançant l'intercanvi d'assignacions entre ``r1`` i ``r2``. Si el planificador és capaç de fer això, hauria d'assignar ``r1`` a l'habitació que compleix la preferència d'orientació de ``r2`` i viceversa, indicant que no segueix una estratègia greedy:
 
-- Estratègia Greedy/Seqüencial: Si el planificador processa r1 i troba h1 lliure, l'hi podria assignar. Això és vàlid (per l'acció assignar-habitacio-desorientada) però incorre en un cost de 1. Quan després processi r2, només quedarà h2 lliure (també incorrecta), sumant un altre cost de 1. Cost Total = 2.
-- Estratègia Òptima: El planificador ha d'"adonar-se" que intercanviant les assignacions (r1->h2 i r2->h1), ambdues reserves obtenen la seva orientació desitjada. Això utilitza l'acció assignar-habitacio-orientada, que té cost 0. Cost Total = 0.
+```bash
+...
+step    0: ASSIGNAR-HABITACIO-DESORIENTADA R1 H1 S
+        1: ASSIGNAR-HABITACIO-DESORIENTADA R2 H2 N
+        2: DESCARTAR-RESERVA R3
+...
+```
 
-Plantegem la següent hipòtesi per a aquest experiment:
+Com es pot veure, el planificador ha assignat ``r1`` i ``r2`` a les habitacions que no compleixen les seves preferències d'orientació, indicant que ha realitzat una assignació creuada per maximitzar la satisfacció global. Ha descartat r3, ja que no hi havia habitacions disponibles que complissin la seva preferència d'orientació. Aquesta solució és òptima, ja que obté una puntuació total de 0 (2 punts per ``r1`` i 2 punts per ``r2``, menys 1 punt per cada assignació desorientada, menys 2 punts per ``r3`` descartada).
 
-- $H_0$: El planificador assigna  indicant que actua de manera greedy i no optimitza les preferències d'orientació.
-- $H_1$: El planificador obté una puntuació total de 0, demostrant que realitza l'assignació creuada òptima i evita les penalitzacions.
+Ara veurem com gestiona el planificador on totes les reserves tenen preferències d'orientació que no són possibles a l'hotel. En aquest cas, totes les reserves tenen preferències d'orientació que no coincideixen amb cap habitació disponible. L'objectiu és veure si el planificador és capaç de maximitzar les assignacions mitjançant l'assignació d'habitacions que no compleixen les preferències d'orientació:
+
+```bash
+...
+step    0: ASSIGNAR-HABITACIO-DESORIENTADA R1 H1 S
+        1: ASSIGNAR-HABITACIO-DESORIENTADA R2 H2 N
+        2: DESCARTAR-RESERVA R3
+...
+```
+
+Com es pot veure, el planificador ha assignat ``r1`` i ``r2`` a les habitacions disponibles, encara que no compleixin les seves preferències d'orientació, i ha descartat ``r3``, ja que no hi havia habitacions disponibles. Aquesta solució és òptima, ja que obté una puntuació total de 0 (1 punt per ``r1`` i 1 punt per ``r2``, menys 1 punt per cada assignació desorientada, menys 2 punts per ``r3`` descartada).
+
+Finalment, veurem com gestiona el planficador sota aquestes condicions finals:
+
+- La reserva `r1` serà comptaible amb l'habitació `h2`, que compleix la seva preferència d'orientació, capacitat i dies.
+- La reserva `r2` serà compatible amb l'habitació `h1` però no compleix la seva preferència d'orientació. Si que compleix capacitat i dies.
+- La reserva `r3` serà compatible amb l'habitació `h1`, que compleix la seva preferència d'orientació amb `h2` i dies, però no la capacitat.
+
+L'objectiu és veure si el planificador pot trobar la solució òptima assignant `r1` a `h2`, `r2` a `h1` i descartant `r3` per no complir la capacitat tot i que compleixi la preferència d'orientació:
+
+```bash
+step    0: DESCARTAR-RESERVA R3
+        1: ASSIGNAR-HABITACIO-ORIENTADA R1 H2 N
+        2: ASSIGNAR-HABITACIO-DESORIENTADA R2 H1 O
+```
+
+Com es pot veure, el planificador ha assignat `r1` a `h2`, que compleix la seva preferència d'orientació, i ha assignat `r2` a `h1`, que no compleix la seva preferència d'orientació, i ha descartat `r3`, ja que no complia la capacitat. Aquesta solució és òptima, ja que obté una puntuació total de 3 (2 punts per `r1`, 1 punt per `r2` desorientada, menys 2 punts per `r3` descartada).
+
+Per tant, aquest experiment demostra que el planificador és capaç d'optimitzar les assignacions tenint en compte les preferències d'orientació, especialment en situacions on les preferències són creuades entre reserves. Però aquests exemples són massa petits i no són escalables a un escenari real. Per això, plantegem una manera diferent d'avaluar el planificador en aquest domini mitjançant puntuacions.
+
+La resposta d'un programa se li assignarà una puntuació basada en les assignacions descartades, de la mateixa manera que fa el propi planner. Cada assignació que no compleixi la preferència d'orientació sumarà 1 punt a la puntuació total (penalització). Cada reserva que no s'assigni sumarà 2 punts a la puntuació total (penalització). L'objectiu és minimitzar aquesta puntuació, és a dir, maximitzar les assignacions que compleixin les preferències d'orientació.
+
+Li demanem a la LLM **Gemini 3 Pro** que ens dissenyi un generador de problemes per a aquest domini, seguint les mateixes línies que el generador de l'extensió 1, però afegint preferències d'orientació a les reserves i orientacions a les habitacions. El generador ha de permetre controlar la proporció de reserves que tenen preferències d'orientació que coincideixen amb les habitacions disponibles, així com la proporció de reserves que no poden ser assignades a cap habitació per no complir la capacitat o els dies. Aquesta proporció ha de ser un paràmetre d'entrada del generador.
+
+El resultat obtingut ha sigut un script de Python que genera problemes seguint aquesta lògica:
+
+- Generació d'Habitacions: Es generen les orientacions aleatòriament (com abans, garantint almenys una de cada si és possible).
+- Calcul de proporcions: Es compta quantes habitacions hi ha de cada tipus (p. ex., 4 Nord, 2 Sud...).
+- Generació de Reserves: Per a cada reserva:
+
+  - Amb una probabilitat ``prob_match``: S'assigna una orientació "ideal", és a dir, triada seguint la mateixa distribució de probabilitat que les habitacions existents. Si el 60% de les habitacions són Nord, la reserva tindrà un 60% de probabilitats de voler Nord. Això maximitza la coincidència.
+  - Amb una probabilitat ``1 - prob_match``: Es tria una orientació totalment uniforme a l'atzar (1/4 per a cadascuna), ignorant la disponibilitat real. Això introdueix el soroll o la "no coincidència".
+
+Si ``prob_match=1.0``, la demanda segueix perfectament l'oferta. Si ``prob_match=0.0``, la demanda és independent de l'oferta.
+
+Per tant, provem d'experimentar amb diferents valors de ``prob_match`` (0.0, 0.1, 0.2, ..., 1.0) per veure com afecta la capacitat del planificador per minimitzar la puntuació total (penalitzacions). Per aïllar l'impacte de les preferències d'orientació, mantenim el nombre d'habitacions i reserves fix de 30 i 18 respectivament, perquè ja sabem, per experiments anteriors, que el planificador és capaç de gestionar aquesta mida eficientment però hi ha certa competència entre reserves. També mantenim el nombre de dies fixat a 30. Mesurarem la puntuació total obtinguda pel planificador per a cada valor de ``prob_match``, repetint cada experiment 10 vegades per mitigar el soroll en la mesura. Els resultats obtinguts són els següents:
 
 #### 3.2.2.2 Problema 2: Selecció VIP
 
