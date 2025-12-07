@@ -995,11 +995,116 @@ En termes d’anàlisi, el gràfic evidencia que el nombre de reserves és un pa
 
 ## 3.4 Extensió 4
 
+A les extensions anteriors, especialment a la 3, hem comprovat que l'ús de mètriques numèriques és una eina potent però pot portar-nos problemes. Trobar l'equilibri perfecte entre els pesos dels diferents objectius es converteix sovint en un procés de prova i error complex. Si no s'ajusten els paràmetres amb correctament, el planificador pot acabar prenent decisions poc eficients simplement perquè el càlcul numèric afavoreix un camí que no desitgem (per exemple, descartar una reserva per evitar una petita penalització d'ajust).
+
+Per a l'Extensió 4, on afegim el repte de **minimitzar el nombre d'habitacions obertes** (a més de maximitzar reserves i ajustar capacitats), hem decidit prescindir dels pesos numèrics i implementar una estratègia diferent: **el disseny lògic estructural**.
+
+La idea central d'aquest enfocament és transformar les prioritats en **longitud del pla**. És fonamental entendre el funcionament del planificador Metric-FF: per defecte, el sistema busca la solució més ràpida, aquella que necessita menys transicions (passos) per assolir l'objectiu. Nosaltres aprofitem aquest funcionament per poder-lo aplicar a millorar l'eficiència per guiar les decisions, i a més, ho farem sense dependre de valors numèrics externs, els quals poden ser difícils de calibrar.
+
+El mecanisme consisteix a dissenyar la topologia del domini de manera que les opcions menys desitjables requereixin executar **més passos**:
+
+1.  **Prioritat 1: Reutilitzar habitacions (Cost: 1 pas).** Ho facilitem al màxim. Dissenyem una acció directa que es resol en un sol pas. En ser el camí més curt, el planificador el seleccionarà sempre que sigui viable.
+2.  **Prioritat 2: Obrir habitacions (Cost: 2 passos).** Ho fem més costós estructuralment. Forcem el planificador a executar una seqüència de dues accions (obrir i després assignar) per aconseguir-ho. Com que és un procés més llarg que l'anterior, el sistema només optarà per aquest camí si no té cap alternativa de reutilització.
+3.  **Prioritat 3: Descartar reserves (Cost: >N passos).** Ho fem prohibitiu en termes de longitud. Creem una cadena artificial de molts passos seqüencials. El planificador identificarà aquesta opció com un camí extremadament ineficient i l'evitarà sistemàticament, excepte en casos on sigui impossible assignar la reserva.
+
+D'aquesta manera, convertim l'estructura del problema en la pròpia funció de cost. No cal indicar explícitament al sistema què és important mitjançant fórmules, definint les accions com hem fet, ens farà que el planificador vaigi de manera natural cap a la solució més efcient.
+
 ### 3.4.1 Domini
+
+Seguint aquesta filosofia, el nou domini `hotel-extensio4-logic` elimina totalment les funcions numèriques complexes i la secció `:metric`. Tota l'optimització recau en com hem dissenyat les accions perquè les opcions preferibles siguin més ràpides d'executar.
+
+1.  **Simulació de la Lògica Numèrica**
+    Com que prescindim dels `fluents` per fer comparacions matemàtiques (tipus `capacitat >= persones`), implementem una solució declarativa:
+    *   Definim un tipus `nombre` i objectes per a cada valor (`n1, n2, n3, n4`).
+    *   Utilitzem un predicat estàtic `(menor-o-igual ?n1 ?n2)` que s'instancia a l'estat inicial com una taula de veritat completa, codificant totes les relacions `i <= j`.
+    D'aquesta manera, verifiquem si una reserva cap en una habitació mitjançant una simple consulta lògica a l'estat, sense necessitat d'una avaluació numèrica en temps d'execució.
+
+2.  **Jerarquia de Costos a través de la Longitud del Pla**
+    Aquí definim l'estructura de costos jugant amb el nombre d'accions necessàries per a cada operació:
+
+    *   **Cost Mínim (1 pas): Reutilitzar una habitació**
+        Si una habitació ja té l'estat `(usada ?h)`, assignar-hi una nova reserva és l'opció més directa. L'acció `assignar-habitacio-usada` modela això com un sol pas atòmic.
+        ```
+        (:action assignar-habitacio-usada
+            :parameters (?r - reserva ?h - habitacio ?cap - nombre ?pers - nombre)
+            :precondition (and
+                (not (processada ?r))
+                (usada ?h)  ;; Precondició clau: només si ja s'ha fet servir
+                (capacitat ?h ?cap)
+                (persones ?r ?pers)
+                (menor-o-igual ?pers ?cap)
+                (not (exists (?d - dia ?r2 - reserva) 
+                       (and (dies-reserva ?r ?d) (ocupada ?h ?d ?r2))))
+            )
+            :effect (and
+                (processada ?r)
+                (forall (?d - dia) (when (dies-reserva ?r ?d) (ocupada ?h ?d ?r)))
+            )
+        )
+        ```
+
+    *   **Cost Mitjà (2 passos): Obrir una habitació nova**
+        Quan no hi ha disponibilitat a les habitacions obertes, el sistema ha de assumir el cost d'obrir-ne una de nova. Modelem això com una cadena obligatòria de dues accions, fent que el pla total sigui més llarg i menys atractiu per a l'heurística:
+        1.  `obrir-habitacio`: Marca l'habitació com a `usada` i activa un estat transitori `(oberta ?h)`.
+        2.  `assignar-habitacio-nova`: Assigna la reserva consumint l'estat `(oberta ?h)`.
+
+    *   **Cost Màxim (>N passos): Descartar una reserva**
+        Per garantir que descartar sigui sempre l'últim recurs, dissenyem aquesta acció com una cadena artificialment llarga de passos seqüencials (`descartar-pas-1`, `descartar-pas-2`...). El planificador percep aquesta opció com un camí molt ineficient i l'evita sempre que existeixi qualsevol possibilitat d'assignació (que només costa 1 o 2 passos).
 
 ### 3.4.2 Problemes
 
-#### 3.4.2.1 Problema 1
+La validació d'un sistema basat en costos estructurals requereix un enfocament diferent del de les mètriques numèriques. No busquem simplement "reduir un número", sinó verificar que el planificador tria la branca correcta de l'arbre de cerca quan s'enfronta a decisions conflictives.
+
+Per aquest motiu, hem seleccionat dos experiments dissenyats per posar a prova la jerarquia d'objectius. El primer experiment verifica el nou requisit (minimitzar habitacions vs. dispersar reserves), mentre que el segon actua com a prova de regressió per assegurar que no hem trencat la funcionalitat bàsica (assignar reserves vs. descartar-les). Addicionalment, utilitzem el script `generador_4.py` [file:5] per validar l'escalabilitat del model.
+
+### 3.4.2.1 Experiment 1: El dilema de la concentració
+
+Aquest experiment constitueix la prova fonamental per validar l'efectivitat de la minimització d'habitacions mitjançant costos estructurals. El seu propòsit és verificar si el planificador és capaç d'ignorar l'abundància de recursos disponibles i "auto-limitar-se" per ser eficient, guiat únicament per la longitud del pla.
+
+**Hipòtesi Inicial:**
+Si el nostre disseny del domini és correcte —on reutilitzar una habitació costa 1 pas i obrir-ne una de nova en costa 2—, el planificador (Metric-FF) sempre preferirà agrupar les reserves en el mínim nombre d'habitacions possible.
+Concretament, esperem que el nombre d'habitacions utilitzades es mantingui **baix i constant** (proper a l'òptim condicionat pels conflictes temporals), independentment de si el problema disposa de 5, 20 o 50 habitacions lliures. Si l'estratègia fallés, observaríem un comportament *greedy* on l'ús d'habitacions creixeria proporcionalment a la disponibilitat per evitar conflictes de manera mandrosa.
+
+**Disseny de l'Experiment:**
+Per aïllar aquesta variable, hem dissenyat un escenari de prova controlat amb les següents característiques:
+
+*   **Entrada Constant:** Es manté fix el volum de feina en **5 reserves** distribuïdes aleatòriament en un calendari de **30 dies**. Aquest volum és prou petit per permetre una concentració teòrica alta, però amb prou aleatorietat per generar conflictes puntuals.
+*   **Variable Independent:** Modifiquem el nombre d'**habitacions disponibles** al problema inicial, testejant els nivells: 5, 10, 15, 20, 30, 40 i 50 habitacions.
+*   **Mètriques:**
+    *   *Habitacions Obertes:* Comptem quantes vegades s'executa l'acció `obrir-habitacio` al pla final.
+    *   *Temps d'Execució:* Mesurem el temps de CPU per avaluar l'impacte de l'espai de cerca.
+*   **Protocol:** Per garantir la robustesa estadística i suavitzar els efectes de l'aleatorietat en les dates de les reserves, executem **5 rèpliques** per a cada nivell d'habitacions (total 35 execucions) i calculem la mitjana dels resultats.
+
+L'execució d'aquest experiment s'ha automatitzat mitjançant un script Python (`executar_exp4.1.py`) que genera dinàmicament els problemes PDDL, invoca el planificador i analitza els fitxers de sortida per extreure les mètriques clau.
+
+**Anàlisi de Resultats**
+
+El gràfic següent mostra l'evolució de la mitjana d'habitacions utilitzades (barres blaves) i el temps de càlcul (línia vermella) a mesura que augmenta la disponibilitat d'habitacions.
+
+<div class="image-row">
+  <div class="image-column">
+    <img src="./figures/ext4/1.png" alt="Gràfic de temps d'execució en l'extensió 2 experiment 1">
+    <div class="caption">Figura 12: Relació entre habitacions obertes i temps d'execució segons la disponibilitat del domini.</div>
+  </div>
+</div>
+
+Les dades obtingudes permeten validar la nostra hipòtesi de manera robusta:
+
+1.  **Estabilitat en l'Ús de Recursos (Barres Blaves):**
+    Com s'observa al gràfic, el nombre d'habitacions obertes es manté notablement constant, oscil·lant entre **1.8 i 3.2**, malgrat que l'oferta d'habitacions (Eix X) es multiplica per deu.
+    *   Amb **5 habitacions disponibles**, el sistema en fa servir una mitjana de **1.8**.
+    *   Amb **50 habitacions disponibles**, la mitjana és de **3.0**.
+    
+    Aquesta estabilitat demostra que el planificador **ignora l'abundància**. En lloc de dispersar les 5 reserves en 5 habitacions (l'estratègia fàcil amb 50 disponibles), el sistema s'esforça a compactar-les en 2 o 3 habitacions. Això prova que el "cost estructural" de 2 passos actua com un fre efectiu contra l'ús innecessari de recursos.
+
+2.  **L'Òptim Condicionat:**
+    Tot i que l'ideal teòric seria utilitzar una única habitació, els valors entre 2 i 3 s'expliquen pels **conflictes temporals**. En un calendari aleatori, és estadísticament freqüent que dues reserves coincideixin en dates, fent físicament impossible la seva ubicació a la mateixa habitació. Els resultats indiquen que el sistema troba l'**òptim condicionat**: obre només les habitacions extra imprescindibles per resoldre els solapaments d'horari.
+
+3.  **Escalabilitat del Temps (Línia Vermella):**
+    El temps d'execució mostra un creixement lineal lògic (de ~120ms a ~670ms) degut a l'expansió de l'espai de cerca (gestionar 50 objectes és més costós que gestionar-ne 5). No obstant això, es manté sempre en un rang inferior a un segon, confirmant que l'estratègia és computacionalment eficient i no sobrecarrega el procés de planificació.
+
+**Conclusió:**
+Hem validat que **dissenyar bé les accions del domini funciona com una guia d'optimització eficaç**. El sistema ha après a prioritzar la reutilització (camí curt) davant de l'obertura (camí llarg), aconseguint una eficiència de concentració superior al 50% fins i tot en escenaris d'extrema abundància. Això demostra que no és necessari recórrer a mètriques numèriques complexes per assolir aquest objectiu de minimització.
 
 #### 3.4.2.2 Problema 2
 
