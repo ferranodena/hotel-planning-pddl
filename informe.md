@@ -884,61 +884,7 @@ L'extensió 3 es presenta com una evolució de l'extensió 1. Com en aquesta úl
 
 ### 3.3.1 Domini
 
-El domini d'aquesta extensió és gairebé idèntic al de l'extensió 1:
-
-```pddl
-(define (domain hotel-extensio3)
-  (:requirements :typing :negative-preconditions :adl :fluents)
-  (:types
-    reserva habitacio dia
-  )
-
-  (:predicates 
-    (dies-reserva ?r - reserva ?d - dia)
-    (ocupada ?h - habitacio ?d - dia)
-    (processada ?r - reserva) ; per saber si ja hem processat la reserva
-  )
-
-  (:functions
-    (capacitat ?h - habitacio) 
-    (persones ?r - reserva)   
-    (total-reserves-descartades)
-    (total-places-descartades)        
-  )
-
-  ;; assigna i incrementa la mètrica
-  (:action assignar-habitacio
-      :parameters (
-        ?r - reserva 
-        ?h - habitacio
-      )
-      :precondition (and
-        (not (processada ?r))          ;; només si encara no l'hem tractat
-        (>= (capacitat ?h) (persones ?r)) ; control de capacitat de les habitacions
-        (not (exists (?d - dia) 
-             (and (dies-reserva ?r ?d) (ocupada ?h ?d))))
-      )
-      :effect (and
-        (processada ?r)                ;; marquem com processada
-        (forall (?d - dia) 
-          (when (dies-reserva ?r ?d) (ocupada ?h ?d)))
-        (increase (total-places-descartades)
-        (- (capacitat ?h) (persones ?r)))
-      )
-  )
-
-  (:action descartar-reserva
-      :parameters (?r - reserva)
-      :precondition (not (processada ?r))
-      :effect (and 
-        (processada ?r)
-        (increase (total-reserves-descartades) 1) ;; suemem 1 al total de descartades
-      )
-  )
-)
-```
-
-Com es pot observar, les principals diferències es troben en les funcions numèriques i en la mètrica d'optimització:
+El domini d'aquesta extensió és gairebé idèntic al de l'extensió 1, les principals diferències es troben en les funcions numèriques i en la mètrica d'optimització:
 
 - Hem mantingut la funció `total-reserves-descartades`, que ja s'utilitzava a l'extensió 1 per comptabilitzar les reserves que no es podien assignar.
 - Hem afegit una nova funció, `total-places-descartades`, que ens permet mesurar el nombre de places desaprofitades quan una reserva s'assigna a una habitació més gran del necessari.
@@ -952,7 +898,6 @@ La modificació clau es troba dins de l'acció `assignar-habitacio`:
 ```
 
 Cada vegada que assignem una reserva a una habitació, incrementem `total-places-descartades` amb la diferència entre la capacitat de l’habitació i el nombre de persones de la reserva. D’aquesta manera, es fa un seguiment exacte de les places buides que queden en totes les habitacions.
-
 La resta del domini, incloses les accions i predicats, es manté igual que en l’extensió 1. Això permet preservar la lògica d’assignació sense solapaments mentre afegim la nova preocupació d’optimització del desperdici de places.
 
 ### 3.3.2 Problemes
@@ -1008,9 +953,45 @@ step    0: ASSIGNAR-HABITACIO R1 H1
 ```
 Amb això podem arribar a una conclusió clara. Tot i que no podem afirmar que existeix un únic pes òptim per a tots els problemes, els experiments permeten extreure una conclusió pràctica: un pes elevat com 100 sembla suficient per assegurar que el planificador prioritzi sempre l’assignació de reserves abans de minimitzar el desaprofitament en instàncies típiques del domini. En el nostre exemple inicial, aquest pes és clarament suficient per imposar la jerarquia d’objectius i obtenir la solució desitjada.
 
-A més, en escenaris més realistes —amb habitacions de capacitat ajustada, com solen trobar-se en hotels reals— el mateix pes de 100 continua generant solucions correctes, com hem vist en l’experiment amb habitacions més petites. Això indica que un pes de 100 pot funcionar com a referència robusta en molts casos pràctics, tot i que no garanteix un comportament perfecte en instàncies extremes amb habitacions molt grans o reserves molt petites, on podria caldre ajustar-lo.
+A més, en escenaris més realistes, amb habitacions de capacitat ajustada, com solen trobar-se en hotels reals, el mateix pes de 100 continua generant solucions correctes, com hem vist en l’experiment amb habitacions més petites. Això indica que un pes de 100 pot funcionar com a referència robusta en molts casos pràctics, tot i que no garanteix un comportament perfecte en instàncies extremes amb habitacions molt grans o reserves molt petites, on podria caldre ajustar-lo.
 
 #### 3.3.2.2 Problema 2
+En aquest experiment analitzem el comportament del planificador davant problemes de mida creixent, amb l’objectiu d’estudiar com afecta l’increment de la complexitat del problema al temps d’execució. L’interès principal és determinar fins a quin punt el nombre de reserves, habitacions i dies influeix en el rendiment del planificador i en la seva capacitat per trobar un pla en temps raonable.
+Per tal de dur a terme l’experiment, hem utilitzat els scripts `generador3.py` i `executar_exp3.py`, que permeten generar automàticament un conjunt de problemes de dimensions diverses i executar-los amb el domini corresponent. Tots els resultats s’emmagatzemen en un fitxer en format CSV, que posteriorment s’utilitza per analitzar les dades i extreure conclusions.
+Els problemes generats segueixen el conjunt de configuracions següent:
+```bash
+CONFIGURACIONS = [
+    (1, 1, 1),    
+    (2, 1, 1),    
+    (2, 2, 2),    
+    (3, 2, 3),    
+    (4, 3, 4),   
+    (5, 4, 5),    
+    (6, 5, 6),    
+    (8, 6, 7),  
+    (10, 8, 8),  
+    (15, 10, 8),  
+    (20, 15, 9), 
+    (25, 20, 10), 
+    (30, 25, 10), 
+    (30, 30, 10), 
+]
+```
+On el primer número correspon al número de reserves, el segon al número d'habitacions i el tercer al número de dies.
+A partir d’aquest conjunt de problemes, obtenim els resultats següents:
+
+<div class="image-row">
+  <div class="image-column">
+    <img src="./figures/ext3/temps_vs_reserves.png" alt="Gràfic de temps d'execució en l'extensió 2 - problema 2">
+    <div class="caption">Figura 12: Temps d'execució en funció del nombre de reserves i habitacions</div>
+  </div>
+</div>
+
+Aquest gràfic mostra el temps mitjà de planificació en funció del nombre de reserves, amb el color representant el nombre d’habitacions, i deixa veure una estructura clarament escalonada. 
+Per valors petits de reserves (1–10) el temps es manté relativament estable, en una franja aproximada de 55–80 ms, fins i tot quan augmenta lleugerament el nombre d’habitacions (colors més clars), cosa que indica que en aquest rang la combinatòria d’assignacions és manejable i l’heurística de Metric‑FF troba plans bons sense explorar gaire l’espai d’estats. 
+A partir d’aquí, cada salt significatiu en el nombre de reserves va acompanyat d’un increment clar del temps: amb 15 reserves el temps ja s’enfila cap als 90–100 ms, amb 20 reserves puja per sobre dels 100 ms i amb 25 reserves arriba prop dels 200 ms. 
+El punt més extrem és a 30 reserves, on hi ha dos casos amb 25 i 30 habitacions (colors verd-clar/groc) que porten el temps de planificació fins als 380–410 ms; en aquestes configuracions, la combinació de moltes reserves, moltes habitacions i l’horitzó temporal fa explotar el nombre de possibles assignacions i solapaments, de manera que el planificador ha d’explorar moltíssimes més alternatives abans de trobar una solució òptima. 
+En termes d’anàlisi, el gràfic evidencia que el nombre de reserves és un paràmetre clau de dificultat i que, quan es combina amb un nombre alt d’habitacions, l’espai de cerca creix de forma fortament no lineal, produint increments de temps de diversos factors en comparació amb les instàncies petites.
 
 ## 3.4 Extensió 4
 
