@@ -1,0 +1,5 @@
+Problema,Plan_Length,Total_Cost,Resultat_Complet
+mid_prob01.pddl,,,stdout and stderr arguments may not be used with capture_output.
+mid_prob02.pddl,,,stdout and stderr arguments may not be used with capture_output.
+mid_prob03.pddl,,,stdout and stderr arguments may not be used with capture_output.
+mid_prob04.pddl,,,stdout and stderr arguments may not be used with capture_output.

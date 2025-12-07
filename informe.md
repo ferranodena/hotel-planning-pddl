@@ -959,45 +959,56 @@ La resta del domini, incloses les accions i predicats, es manté igual que en l�
 
 Per tal de validar l’extensió 3, es duran a terme diversos experiments sistemàtics amb l’objectiu d’analitzar en profunditat com la ponderació de les mètriques afecta el comportament del planificador i la qualitat dels plans obtinguts, així com d’avaluar la seva capacitat per resoldre instàncies de major complexitat estructural i dimensional.
 
-#### 3.3.2.1 Problema 1
+#### 3.3.2.1 Problema 1: El pes
 
 Aquest primer experiment té com a objectiu determinar la importància que tenen les ponderacions en les solucions obtingudes als problemes.
-Per a realitzarlo, utilitzarem el problema definit a l'arxiu `experiment1.pddl`. Aquest problema inclou quatre reserves amb diferents requeriments de places i dues habitacions amb capacitats limitades, distribuïdes al llarg de tres dies. Els dies de les reserves presenten un alt grau de solapament, generant conflictes naturals per l’assignació. En el primer dia, tres reserves (r1, r2 i r3) competeixen per només dues habitacions amb capacitats limitades, de manera que no totes les reserves poden ser assignades sense generar conflictes. El segon dia és encara més complex, amb quatre reserves que volen ocupar simultàniament les dues habitacions disponibles, superant clarament la capacitat combinada. Això implica que el planificador ha de prendre decisions crítiques sobre quines reserves assignar i quines descartar, ja que no és possible allotjar totes les reserves sense violar les restriccions de capacitat. El tercer dia només conté una reserva, eliminant els conflictes per a aquest dia, però les decisions preses en els dies anteriors afecten el cost total del pla. Aquest problema és clarament no trivial, ja que no es pot resoldre de manera directa sense un raonament combinatori. Les múltiples opcions legals disponibles per assignar reserves a les habitacions impliquen que el planificador ha de considerar diferents combinacions per minimitzar el cost definit per la mètrica. Les restriccions de capacitat, combinades amb els solapaments de dies, creen un espai d’estats amb diversos camins possibles cap al goal, on cada camí té un cost diferent segons quines reserves es descarten i quantes places sobrants queden. En aquest escenari, el planificador ha de trobar un equilibri entre descartar el mínim nombre de reserves i utilitzar eficientment les habitacions segons la ponderació que escollim. La combinació de dies solapats i capacitats limitades genera una situació on no hi ha una única solució òptima evident i on cada decisió té implicacions sobre els dies següents. Per tant, aquest problema constitueix un cas representatiu d’escenaris amb conflictes intensos, on les decisions de planificació han de ser estratègiques i consideren simultàniament les restriccions de capacitat, els solapaments de dies i la mètrica combinada de cost.
-Com s'especifica a l'enunciat, hem de prioritzar el número de reserves assignaes a habitacións a el nombre de places d'habitacions ocupades, per tant, podem deduir que la mètrica `total-reserves-descartades` tindrà un pes superior a `total-places-descartades`. Per tant, una bona decisió seria deixar el coeficient de `total-reserves-descartades` a 1, i anar variant l'altre. En aquest experiment, executarem diverses instàncies del problema amb els pesos 1, 10 i 100 respectivament, per veure si hi ha alguna diferència en els resultats.
-El script que utilitzarem per a generar la solució serà `ola.py`. Aquest ens donarà informació adicional que a primera vista no podem veure al executar-ho amb metricff directament, com el nombre de reserves descartades o el cost del problema.
+Per a realitzarlo, utilitzarem el problema definit a `experiment1.pddl`. Aquest problema és intencionadament simple, ja que només inclou una reserva i cinc habitacions amb capacitats molt diferents, però està dissenyat per analitzar de manera controlada el comportament del planificador davant d'un dilema típic d'optimització multiobjectiu.
+Tot i ser un problema petit, el repte que planteja al planificador és subtil. El domini permet assignar la reserva r1 a qualsevol habitació amb capacitat suficient, i totes les disponibles ho són. No obstant això, les diferències de capacitat són molt grans, fet que provoca que el valor del segon terme de la mètrica —el total de places descartades— variï dràsticament en funció de l’habitació seleccionada. Així, assignar la reserva a h1 implica desaprofitar 88 places, mentre que fer-ho a h2 només en desaprofita 28. En conseqüència, la funció d’avaluació del planificador ha de comparar trajectòries que tenen totes el mateix nombre d’accions i compleixen el mateix objectiu lògic, però amb costos numèrics molt diferents.
+El punt clau de l’experiment és analitzar la sensibilitat del planificador al pes utilitzat en el primer terme de la mètrica, és a dir, al cost que s’assigna a descartar una reserva.
+Així, aquest problema posa de manifest el repte fonamental del domini: trobar un equilibri adequat entre els dos objectius, garantint que el pes de les reserves descartades sigui prou gran per imposar-se sempre sobre el cost de desaprofitament de places. El comportament de Metric-FF en aquest escenari és especialment interessant perquè el planificador tendeix a simplificar expressions numèriques en l’heurística relaxada i, quan els pesos són insuficients, pot arribar a considerar que descartar la reserva és més barat que assignar-la a una habitació molt gran. L’experiment consisteix, doncs, a variar sistemàticament aquest pes per observar quan el planificador canvia la seva decisió, cosa que permet determinar el valor mínim necessari perquè el criteri de prioritat —en aquest cas, no descartar reserves— quedi reflectit de manera robusta en la mètrica utilitzada.
+Per als pesos provarem amb els valors 1, 10 i 100 respectivament, i plantejem les hipòtesis seguents:
 
-Formulem les seguents hipòtesis:
+- $H_0$: El valor del pes aplicat al cost de les reserves descartades no té cap efecte sobre la decisió del planificador: Metric-FF tria la mateixa acció (assignar o descartar la reserva) independentment del pes utilitzat.
+- $H_1$: El valor del pes sí té un efecte significatiu en la decisió del planificador: existeix un llindar de pes a partir del qual Metric-FF deixa de descartar la reserva i passa a assignar-la a l’habitació òptima.
 
-- $H_0$: La magnitut del pes no afecta al resultat del planificador
-- $H_1$: La magnitut del pes afecta en el resultat.
+Aquesta és la sortida del programa per a cada pes respectivament:
+- Quan assignem un pes de 1 al nombre de reserves descartades, és a dir, quan donem la mateixa importància a les places desperdiciades com a les reserves assignades, obtenim la seguent sortida: 
+```bash
+step    0: DESCARTAR-RESERVA R1
+```
+Aquest resultat és especialment revelador. Tot i disposar d’una única reserva i cinc habitacions on hi cap perfectament, el planificador opta per no assignar-la. Per comprendre per què passa això, cal examinar amb detall la definició del domini i, en particular, la mètrica utilitzada. En aquest model, el nombre de places desaprofitades només augmenta quan assignem una reserva a una habitació. Si una reserva no s’assigna, el domini interpreta que no s’està desaprofitant cap plaça, ja que el desaprofitament es calcula com la diferència entre la capacitat de l’habitació i el nombre de persones de la reserva assignada.
 
-Al executar el programa amb els pesos corresponents es generen els resultats en els arxius `solucio_final_1`, `solucio_final_10`, `solucio_final_100`. Analitzant-les, podem veure això:
+Així, quan el pes de descartar i el pes del desaprofitament són idèntics, ambdós costos es troben a la mateixa escala. En aquesta situació, descartar la reserva té un cost total inferior al de qualsevol assignació, ja que totes les habitacions generen un desaprofitament elevat (d’entre 28 i 88 places). Com a conseqüència, el planificador identifica el descart com l’opció que minimitza el cost global i, per tant, la considera la solució òptima. Aquesta observació mostra clarament que, amb un pes tan petit, el criteri de no descartar reserves no queda adequadament reflectit en la mètrica.
+
+- Quan assignem un pes de 10 al nombre de reserves descartades, el planificador continua produint la mateixa sortida:
+```bash
+step    0: DESCARTAR-RESERVA R1
+```
+En aquest cas, ja estem donant més importància a assignar les reserves, però tot i així el programa troba que no assignar la reserva segueix tenint un cost menor a assignarla i desperdiciar places. En aquest escenari, ja estem penalitzant de manera més severa el fet de descartar una reserva, però el comportament del planificador no canvia. Això indica que, fins i tot amb aquest increment del pes, el cost associat a assignar la reserva a qualsevol de les habitacions disponibles —totes elles amb un desaprofitament de places considerable— continua essent superior al cost de descartar-la. Per tant, el planificador segueix considerant òptima la solució que evita l’assignació, cosa que confirma que un pes de 10 encara és insuficient per compensar la penalització generada pel desaprofitament de places.
+
+- Quan assignem un pes de 100 al nombre de reserves descartades, el comportament del planificador canvia de manera clara i significativa. La sortida obtinguda és:
+```bash
+step    0: ASSIGNAR-HABITACIO R1 H2
+```
+A diferència dels casos anteriors, ara el planificador decideix assignar la reserva en lloc de descartar-la. A més, no només tria assignar-la, sinó que selecciona l’habitació H2, que és la més petita entre totes les disponibles. Aquesta decisió és coherent amb l’objectiu de minimitzar el desaprofitament de places, ja que assignar una reserva de dues persones a una habitació de capacitat 30 genera un desaprofitament de 28 places, que és el menor possible dins del conjunt d’opcions.
+Aquest resultat és important per dues raons. En primer lloc, confirma que l’augment del pes fins a 100 és suficient per fer que el cost de descartar la reserva sigui percebut com a molt més alt que el cost d’associar-la a qualsevol habitació, fins i tot aquelles amb una capacitat molt elevada. El planificador, per tant, prioritza clarament mantenir la reserva activa. En segon lloc, la selecció de l’habitació H2 demostra que, un cop superada aquesta barrera, Metric-FF també és capaç d’optimitzar el segon criteri de la mètrica, que és minimitzar el desaprofitament de places.
+
+Aquest comportament ens permet extreure diverses conclusions. En primer lloc, queda evidenciat que existeix un llindar de pes a partir del qual la mètrica reflecteix adequadament la jerarquia desitjada entre objectius: primer cal evitar descartar reserves i, només després, minimitzar el desaprofitament. Els resultats amb pesos 1 i 10 mostraven que el planificador seguia preferint descartar la reserva, ja que el desaprofitament de places continuava dominant el cost global. En canvi, amb un pes de 100, aquesta situació s’inverteix i el criteri principal queda satisfet.
+En segon lloc, l’experiment mostra que el planificador és sensible al pes de la mètrica i que petits increments no són suficients quan els valors numèrics implicats en el segon terme (en aquest cas, entre 28 i 88 places desaprofitades) són molt superiors. Per això, només en introduir un pes significativament més elevat s’aconsegueix que el cost d’una reserva descartada sigui percebut com a realment prioritari.
+
+Per tant, podem descartar la hipòtesi nul·la i acceptar la hipòtesi alternativa: el valor del pes té un efecte clar sobre la decisió del planificador. Tanmateix, això planteja una qüestió important: existeix un únic valor de pes que pugui funcionar per a tots els problemes, o, per contra, cada instància requereix un pes ajustat de manera específica per garantir que el planificador prioreze correctament l’assignació de reserves abans de minimitzar el desaprofitament de places?
+
+A partir del que hem observat en l’experiment, tot apunta que amb el domini tal com està definit no podem assumir que un únic pes funcioni igual de bé per a tots els problemes. El motiu és força intuïtiu: el pes que donem a les reserves descartades ha de competir directament amb el cost de les places desaprofitades, i aquest segon cost depèn completament de les capacitats de les habitacions i de la mida de les reserves d’aquella instància concreta. En el nostre experiment, assignar la reserva podia suposar desaprofitar entre 28 i 88 places, i això explicava perfectament per què pesos petits com 1 o 10 no eren suficients. Però en un altre problema, amb habitacions més petites o reserves més grans, aquesta diferència podria ser molt més baixa; de la mateixa manera, en un problema amb habitacions encara més grans, el desaprofitament podria ser molt més alt i el pes necessari també.
+Això ens porta a una conclusió molt clara: el pes no només depèn del domini, sinó també de l’escala numèrica de cada instància. Si el desaprofitament màxim en un problema és de 20 places, un pes de 30 seria suficient; però si en un altre el desaprofitament pot arribar a 150, el mateix pes seria insuficient i el planificador tornaria a preferir descartar la reserva. És a dir, el pes òptim no és universal, sinó que està condicionat per la magnitud dels valors amb què competim dins la mètrica.
+En termes pràctics, això vol dir que, tal com està plantejat el domini, caldria ajustar el pes en funció de cada problema si volem garantir que el planificador prioritza sempre el criteri correcte (no descartar reserves) abans d’optimitzar el desaprofitament. Però assumint que estem treballant amb habitacions d'hotel, podriem dir que la capacitat màxima d'una habitació ronda les 7 places. Amb això, podem plantejar el mateix problema que abans, però amb habitacions més petites, per veure quin pes es comporta millor. 
+Si executem el programa un altre cop amb els pesos 1, 10 i 100; observem que en aquest cas, per a tots els pesos obtenim la mateixa solució:
 
 ```bash
-       INFORME DE RESULTATS (EXT 3)     
-========================================
-
-COST REAL TOTAL: 4-22-202
-PES UTILITZAT PER DESCARTADES: 1
-----------------------------------------
---> PLACES DESPERDICIADES: 2
---> PENALITZACIÓ (Descartades * Pes): 2
-
-Assignades: 2 | Descartades: 2 | Habitacions Obertes: 2
-
---- DETALL ASSIGNACIONS ---
-  RESERVA R2 --> HABITACIÓ H1
-  RESERVA R4 --> HABITACIÓ H2
-
---- DETALL DESCARTADES ---
-  RESERVA R1 DESCARTADA
-  RESERVA R3 DESCARTADA
+step    0: ASSIGNAR-HABITACIO R1 H1
 ```
+Amb això podem arribar a una conclusió clara. Tot i que no podem afirmar que existeix un únic pes òptim per a tots els problemes, els experiments permeten extreure una conclusió pràctica: un pes elevat com 100 sembla suficient per assegurar que el planificador prioritzi sempre l’assignació de reserves abans de minimitzar el desaprofitament en instàncies típiques del domini. En el nostre exemple inicial, aquest pes és clarament suficient per imposar la jerarquia d’objectius i obtenir la solució desitjada.
 
-On el cost és 4 quan el pes és 1, 22 quan és 10 i 202 quan és 100.
-Observem que la solució obtinguda és correcte dincs del marc de les restriccions definides pel domini. Només s'han pogut assignar dues reserves (R2 i R4) mentre que les altres dues (R1 i R3) han estat descartades. Aquestes assignacions respecten les capacitats de les habitacions i els solapaments de dies, garantint que no hi hagi conflictes d’ocupació entre reserves. Les habitacions obertes (H1 i H2) s’han utilitzat de manera eficient segons les restriccions disponibles.
-Però, observem també que **canviar el pes no modifica la solució**. Les reserves assignades i les reserves descartades continuen sent les mateixes. L'única variable que canvia és el cost total calculat, que augmenta proporcionalment al pes establert, tal comm preveu la mètrica definida al PDDL.
-Això ens indica que la hipòtesi nul.la és correcte, però abans de concloure l'experiment, provme amb una altra instància de problema, que sigui molt més reduit.
+A més, en escenaris més realistes —amb habitacions de capacitat ajustada, com solen trobar-se en hotels reals— el mateix pes de 100 continua generant solucions correctes, com hem vist en l’experiment amb habitacions més petites. Això indica que un pes de 100 pot funcionar com a referència robusta en molts casos pràctics, tot i que no garanteix un comportament perfecte en instàncies extremes amb habitacions molt grans o reserves molt petites, on podria caldre ajustar-lo.
 
 #### 3.3.2.2 Problema 2
 
