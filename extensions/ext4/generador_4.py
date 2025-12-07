@@ -1,5 +1,7 @@
 import random
 import os
+import argparse
+import sys
 
 def generar_problema_hotel_ext4(num_reservas, num_habitaciones, num_dias, max_capacitat=4, seed=None, problem_name="problema-extensio4-logic"):
     """
@@ -79,23 +81,54 @@ def generar_problema_hotel_ext4(num_reservas, num_habitaciones, num_dias, max_ca
     pddl += ")\n"
     return pddl
 
-def generar_suite_logic():
-    """Genera una suite de problemes per al domini lògic."""
-    configuracions = [
-        ("prob_logic_01", 3, 2, 4),
-        ("prob_logic_02", 5, 3, 6),
-        ("prob_logic_03", 8, 4, 8),
-    ]
-
-    carpeta = "./extensions/ext4_logic"
-    os.makedirs(carpeta, exist_ok=True)
-
-    for nom, r, h, d in configuracions:
-        nom_fitxer = f"{carpeta}/{nom}.pddl"
-        contingut = generar_problema_hotel_ext4(r, h, d, max_capacitat=4, seed=42, problem_name=nom)
-        with open(nom_fitxer, "w") as f:
-            f.write(contingut)
-        print(f"✓ Generat {nom_fitxer}: {r} reserves, {h} habitacions, {d} dies.")
-
+# --- AQUESTA ÉS LA PART NOVA QUE HAS DE CANVIAR ---
 if __name__ == "__main__":
-    generar_suite_logic()
+    # Si rep arguments, actua com a eina de línia de comandes
+    if len(sys.argv) > 1:
+        parser = argparse.ArgumentParser(description='Generador de problemes PDDL Extensió 4')
+        parser.add_argument('--output', required=True, help='Fitxer de sortida')
+        parser.add_argument('--reservas', type=int, default=5, help='Nombre de reserves')
+        parser.add_argument('--habitaciones', type=int, default=5, help='Nombre d\'habitacions')
+        parser.add_argument('--dias', type=int, default=30, help='Nombre de dies')
+        parser.add_argument('--seed', type=int, default=None, help='Llavor aleatòria')
+        # Argument dummy per compatibilitat si l'script d'experiment el passa
+        parser.add_argument('--conflict', type=float, default=0.0, help='(Ignorat en aquesta versió lògica)')
+
+        args = parser.parse_args()
+
+        content = generar_problema_hotel_ext4(
+            num_reservas=args.reservas,
+            num_habitaciones=args.habitaciones,
+            num_dias=args.dias,
+            seed=args.seed
+        )
+
+        # Assegurar que el directori de sortida existeix
+        output_dir = os.path.dirname(args.output)
+        if output_dir and not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        with open(args.output, "w") as f:
+            f.write(content)
+            
+    # Si no rep arguments, fa la generació per defecte (per compatibilitat amb el teu ús anterior)
+    else:
+        def generar_suite_logic():
+            """Genera una suite de problemes per al domini lògic."""
+            configuracions = [
+                ("prob_logic_01", 3, 2, 4),
+                ("prob_logic_02", 5, 3, 6),
+                ("prob_logic_03", 8, 4, 8),
+            ]
+
+            carpeta = "./extensions/ext4_logic"
+            os.makedirs(carpeta, exist_ok=True)
+
+            for nom, r, h, d in configuracions:
+                nom_fitxer = f"{carpeta}/{nom}.pddl"
+                contingut = generar_problema_hotel_ext4(r, h, d, max_capacitat=4, seed=42, problem_name=nom)
+                with open(nom_fitxer, "w") as f:
+                    f.write(contingut)
+                print(f"✓ Generat {nom_fitxer}: {r} reserves, {h} habitacions, {d} dies.")
+        
+        generar_suite_logic()
