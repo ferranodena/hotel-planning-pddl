@@ -1195,6 +1195,53 @@ Hem validat que **dissenyar bé les accions del domini funciona com una guia d'o
 
 #### 3.4.2.2 Problema 2
 
+
+### 3.4.2.2 Experiment 2: Comparativa d'Estratègies (Greedy vs. Òptim)
+
+Després d'haver comprovat en l'experiment anterior que el sistema és capaç de concentrar recursos, aquest segon experiment es planteja com una prova de rendiment a gran escala. L'objectiu és mesurar quant guanyem realment amb la nostra estratègia de "costos estructurals" en comparació amb un enfocament tradicional més simple, conegut com a *Greedy*. Volem demostrar que la nostra optimització no és només una petita millora, sinó que marca una gran diferència quan tenim molta feina acumulada.
+
+**Justificació i Hipòtesi**
+
+En planificació automàtica, l'estratègia *Greedy* (o avariciosa) és el punt de referència bàsic. Aquesta estratègia funciona per "força bruta": per a cada nova reserva que arriba, utilitza una habitació nova per evitar problemes, sense mirar si podria aprofitar les que ja té obertes. Això té un cost fix i previsible de 2 passos per reserva.
+
+La nostra hipòtesi és que el disseny del domini `hotel-extensio4-logic`, on hem fet que obrir habitacions costi el doble (2 passos) que reutilitzar-les (1 pas), aconseguirà un estalvi cada cop més gran. Aquest experiment serveix per validar que el nostre planificador és millor que l'estratègia Greedy perquè és capaç de mirar més enllà del pas immediat: mentre el Greedy només pren la decisió fàcil a curt termini, el nostre sistema minimitza el cost global del pla i prefereix buscar oportunitats de reutilització abans d’obrir noves habitacions.
+
+**Disseny Experimental**
+
+Per provar això en un entorn realista, hem preparat un escenari amb:
+* 40 habitacions disponibles i un calendari de 30 dies.
+* Nombre de reserves creixent: 2, 5, 10, 15, 20, 25 i 30.
+* Mètrica: nombre total de passos del pla (longitud del pla).
+  * Model Greedy (teòric): 2 passos per reserva (sempre 2·N).
+  * Model optimitzat (experimental): mitjana de 5 execucions de Metric-FF per a cada nombre de reserves.
+
+Els valors observats per al nostre planificador oscil·len, per exemple, entre 3–4 passos quan hi ha 2 reserves i entre 38–40 passos quan hi ha 30 reserves, mentre que la línia Greedy creix rígida de 4 a 60 passos per als mateixos casos.
+
+**Anàlisi de Resultats**
+
+<div class="image-row">
+  <div class="image-column">
+    <img src="./figures/ext4/2.png" alt="Gràfic estratègia greedy vs optimitzada">
+    <div class="caption">Figura 13: Nombre de passos de estratègia "greedy" vs. optimitzada </div>
+  </div>
+</div>
+
+El gràfic mostra dues corbes clarament diferenciades: una recta vermella, que representa l’estratègia Greedy (cost teòric de 2 passos per reserva), i una corba verda, que recull el cost real dels plans generats pel nostre sistema. La primera observació important és que la corba verda es manté sempre per sota de la vermella, és a dir, el nostre planificador mai empitjora el comportament Greedy i, en canvi, el millora sistemàticament.
+
+Si mirem els valors concrets, amb 2 reserves el Greedy necessita 4 passos, mentre que el nostre sistema se situa al voltant de 3,6 passos de mitjana (entre 3 i 4 segons la rèplica). La diferència aquí és petita, perquè amb tan poques reserves hi ha poques oportunitats de reutilització: gairebé qualsevol estratègia acaba sent similar. Quan passem a 5 reserves, però, el Greedy puja a 10 passos, mentre que el nostre planificador es manté entorn dels 7,8 passos. Això ja indica que, tan bon punt hi ha una mica de volum, el sistema comença a aprofitar la possibilitat d’encadenar diverses reserves a les mateixes habitacions.
+
+La tendència es fa molt més clara a partir de les 10 reserves. En aquest punt, l’estratègia Greedy requereix 20 passos, mentre que la nostra se situa al voltant dels 14,4. Això vol dir que, per atendre 10 reserves, el sistema és capaç de reduir el cost global aproximadament en una quarta part; en lloc d’obrir 10 habitacions, n’obre moltes menys i reutilitza les existents allà on el calendari ho permet.
+
+Quan augmentem fins a 15 i 20 reserves, la separació entre les dues línies continua creixent. Amb 15 reserves, el Greedy arriba als 30 passos, mentre que el nostre pla es queda entorn dels 21,2. Amb 20 reserves, la línia vermella marca 40 passos i la verda baixa fins a uns 27,4. En tots aquests casos, la nostra estratègia aprofita que hi ha més reserves per "omplir" millor les habitacions, repartint-les al llarg dels 30 dies de manera que una mateixa habitació serveixi diversos grups.
+
+Finalment, en l’escenari més exigent amb 30 reserves, el contrast és màxim. El model Greedy, fidel al seu esquema, necessita 60 passos (2 per cadascuna de les 30 reserves), mentre que el nostre planificador es queda exactament en 39 passos de mitjana. Això significa que estem estalviant 21 passos respecte a la línia teòrica. Si pensem que cada parell de passos correspon, a grans trets, a l’obertura i ús d’una habitació nova, podem interpretar que el sistema ha evitat l’ús d’aproximadament 10 o 11 habitacions respecte al que faria el Greedy. En lloc d’un escenari amb 30 habitacions obertes, estem parlant d’un ús efectiu proper a unes 19, amb la resta de reserves col·locades per reutilització.
+
+Dit d’una altra manera, l’estalvi no és només una petita correcció: a mesura que augmenta el nombre de reserves, el pendent de la nostra corba és clarament més suau que el de la recta Greedy. Això vol dir que el "cost marginal" d’afegir una reserva extra acostuma a ser d’1 pas (reutilització) per al nostre sistema, mentre que per al Greedy continua sent sempre de 2. Això explica que la distància entre les dues línies creixi de forma gairebé lineal a mesura que augmentem la demanda.
+
+**Conclusió**
+
+Aquest experiment confirma de manera clara la hipòtesi que el nostre planificador és millor que una estratègia Greedy i, sobretot, explica el motiu d’aquesta ventatja. La clau és que el sistema no es limita a resoldre cada reserva de forma local, sinó que aprofita la penalització d’obrir habitacions per buscar patrons globals de reutilització. Les dades mostren que, en escenaris de molta càrrega (20, 25 o 30 reserves), això es tradueix en estalvis molt significatius tant en passos com en nombre d’habitacions necessàries. Per tant, l’Extensió 4 no només millora el comportament base, sinó que ho fa de manera cada cop més notable quan el problema creix en mida i complexitat.
+
 ## 4. Conclusions
 
 Aquest projecte demostra que la planificació automàtica és una eina molt útil per gestionar hotels si ens centrem a treure el màxim profit dels recursos en lloc de buscar solucions perfectes impossibles. El canvi clau ha estat fer que el sistema sigui flexible, ja que la versió inicial fallava quan hi havia massa feina, però la versió final és capaç de descartar les reserves impossibles per salvar la resta del calendari i així no bloquejar-se mai, fins i tot quan molta gent vol les mateixes dates.
