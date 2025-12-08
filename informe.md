@@ -1222,7 +1222,7 @@ Els valors observats per al nostre planificador oscil·len, per exemple, entre 3
 <div class="image-row">
   <div class="image-column">
     <img src="./figures/ext4/2.png" alt="Gràfic estratègia greedy vs optimitzada">
-    <div class="caption">Figura 13: Nombre de passos de estratègia "greedy" vs. optimitzada </div>
+    <div class="caption">Figura 14: Nombre de passos de estratègia "greedy" vs. optimitzada </div>
   </div>
 </div>
 
