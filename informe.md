@@ -309,11 +309,36 @@ font-family: Helvetica, Arial, sans-serif;
 <div class="page-break"></div>
 
 ## 1. Introducció
+En aquest treball es tracta el problema de l’assignació de reserves d’un hotel utilitzant tècniques de planificació automàtica amb el llenguatge PDDL. Aquest tipus de problemes són molt comuns en situacions reals, ja que gestionar correctament les reserves és essencial per garantir un bon funcionament d’un hotel i aprofitar al màxim les habitacions disponibles.
+
+El sistema ha de ser capaç d’assignar les diferents peticions de reserva a les habitacions tenint en compte diverses restriccions, com ara que la capacitat de l’habitació sigui suficient per al nombre de persones i que no hi hagi solapaments en les ocupacions dins del mateix mes. A més, el treball no només planteja un cas bàsic, sinó que també inclou diferents extensions on s’introdueixen criteris d’optimització, com maximitzar el nombre de reserves acceptades, tenir en compte la preferència d’orientació de les habitacions, minimitzar el desaprofitament de places i reduir el nombre total d’habitacions utilitzades.
+
 
 <div class="page-break"></div>
 
 ## 2. Objectius i metodologia
 
+1. **Objectius**
+L’objectiu principal d’aquest treball és desenvolupar un sistema de planificació capaç d’assignar correctament les reserves d’un hotel a les diferents habitacions utilitzant el llenguatge PDDL i el planificador metric-ff. Aquesta assignació ha de complir les restriccions bàsiques del problema, com ara la capacitat mínima de les habitacions i l’absència de solapaments temporals entre reserves dins d’una mateixa habitació.
+
+A més d’aquest objectiu general, també es volen assolir els següents objectius específics:
+
+- Modelar correctament el domini del problema en PDDL, definint predicats, funcions numèriques i accions.
+
+- Implementar el nivell bàsic del problema assegurant que totes les reserves s’assignen correctament o, en cas contrari, no se n’assigna cap.
+
+- Desenvolupar les diferents extensions proposades, introduint criteris d’optimització com la maximització del nombre de reserves assignades, la satisfacció de les preferències d’orientació, la minimització del desaprofitament de places i la reducció del nombre d’habitacions utilitzades.
+
+- Analitzar els resultats obtinguts en cada extensió i comparar el comportament del sistema segons els diferents criteris d’optimització.
+
+2. **Metodologia**
+Per al desenvolupament d’aquest treball s’ha seguit una metodologia basada en la modelització progressiva del problema en PDDL. En primer lloc, s’ha analitzat detalladament l’enunciat per identificar els elements principals del domini, com ara les habitacions, les reserves, els dies del mes i les diferents restriccions existents.
+
+Un cop definits aquests elements, s’ha creat el domini PDDL, on s’han especificat els tipus d’objectes, els predicats necessaris per representar l’estat del sistema i les funcions numèriques per poder expressar els criteris d’optimització. A continuació, s’han definit les accions que permeten dur a terme l’assignació de reserves a les habitacions, tenint en compte tant les restriccions de capacitat com les de no solapament.
+
+Posteriorment, s’han creat diferents fitxers de problema, fets a mà o per un generador, per provar el funcionament del sistema en el nivell bàsic i en cadascuna de les extensions. Per a l’obtenció de les solucions s’ha utilitzat el planificador metric-ff, que permet treballar amb funcions numèriques i criteris d’optimització.
+
+Finalment, s’han analitzat els plans generats pel planificador per comprovar si compleixen les restriccions establertes i si optimitzen correctament els criteris definits en cada extensió. A partir d’aquesta anàlisi, s’han extret les conclusions sobre el funcionament i l’eficàcia del model desenvolupat.
 <div class="page-break"></div>
 
 ## 3. Disseny del domini i dels problemes
@@ -945,7 +970,7 @@ Per tant, podem descartar la hipòtesi nul·la i acceptar la hipòtesi alternati
 
 A partir del que hem observat en l’experiment, tot apunta que amb el domini tal com està definit no podem assumir que un únic pes funcioni igual de bé per a tots els problemes. El motiu és força intuïtiu: el pes que donem a les reserves descartades ha de competir directament amb el cost de les places desaprofitades, i aquest segon cost depèn completament de les capacitats de les habitacions i de la mida de les reserves d’aquella instància concreta. En el nostre experiment, assignar la reserva podia suposar desaprofitar entre 28 i 88 places, i això explicava perfectament per què pesos petits com 1 o 10 no eren suficients. Però en un altre problema, amb habitacions més petites o reserves més grans, aquesta diferència podria ser molt més baixa; de la mateixa manera, en un problema amb habitacions encara més grans, el desaprofitament podria ser molt més alt i el pes necessari també.
 Això ens porta a una conclusió molt clara: el pes no només depèn del domini, sinó també de l’escala numèrica de cada instància. Si el desaprofitament màxim en un problema és de 20 places, un pes de 30 seria suficient; però si en un altre el desaprofitament pot arribar a 150, el mateix pes seria insuficient i el planificador tornaria a preferir descartar la reserva. És a dir, el pes òptim no és universal, sinó que està condicionat per la magnitud dels valors amb què competim dins la mètrica.
-En termes pràctics, això vol dir que, tal com està plantejat el domini, caldria ajustar el pes en funció de cada problema si volem garantir que el planificador prioritza sempre el criteri correcte (no descartar reserves) abans d’optimitzar el desaprofitament. Però assumint que estem treballant amb habitacions d'hotel, podriem dir que la capacitat màxima d'una habitació ronda les 7 places. Amb això, podem plantejar el mateix problema que abans, però amb habitacions més petites, per veure quin pes es comporta millor. 
+En termes pràctics, això vol dir que, tal com està plantejat el domini, caldria ajustar el pes en funció de cada problema si volem garantir que el planificador prioritza sempre el criteri correcte (no descartar reserves) abans d’optimitzar el desaprofitament. Però assumint que estem treballant amb habitacions d'hotel, podriem dir que la capacitat màxima d'una habitació ronda les 7 places. Amb això, podem plantejar el mateix problema que abans, però amb habitacions més petites, per veure quin pes es comporta millor. Aquest nou problema amb habitacions més petites es pot trobar a `experiment1.2.pddl`.
 Si executem el programa un altre cop amb els pesos 1, 10 i 100; observem que en aquest cas, per a tots els pesos obtenim la mateixa solució:
 
 ```bash
@@ -955,7 +980,7 @@ Amb això podem arribar a una conclusió clara. Tot i que no podem afirmar que e
 
 A més, en escenaris més realistes, amb habitacions de capacitat ajustada, com solen trobar-se en hotels reals, el mateix pes de 100 continua generant solucions correctes, com hem vist en l’experiment amb habitacions més petites. Això indica que un pes de 100 pot funcionar com a referència robusta en molts casos pràctics, tot i que no garanteix un comportament perfecte en instàncies extremes amb habitacions molt grans o reserves molt petites, on podria caldre ajustar-lo.
 
-#### 3.3.2.2 Problema 2
+#### 3.3.2.2 Problema 2: Complexitat temporal
 En aquest experiment analitzem el comportament del planificador davant problemes de mida creixent, amb l’objectiu d’estudiar com afecta l’increment de la complexitat del problema al temps d’execució. L’interès principal és determinar fins a quin punt el nombre de reserves, habitacions i dies influeix en el rendiment del planificador i en la seva capacitat per trobar un pla en temps raonable.
 Per tal de dur a terme l’experiment, hem utilitzat els scripts `generador3.py` i `executar_exp3.py`, que permeten generar automàticament un conjunt de problemes de dimensions diverses i executar-los amb el domini corresponent. Tots els resultats s’emmagatzemen en un fitxer en format CSV, que posteriorment s’utilitza per analitzar les dades i extreure conclusions.
 Els problemes generats segueixen el conjunt de configuracions següent:
@@ -992,6 +1017,59 @@ Per valors petits de reserves (1–10) el temps es manté relativament estable, 
 A partir d’aquí, cada salt significatiu en el nombre de reserves va acompanyat d’un increment clar del temps: amb 15 reserves el temps ja s’enfila cap als 90–100 ms, amb 20 reserves puja per sobre dels 100 ms i amb 25 reserves arriba prop dels 200 ms. 
 El punt més extrem és a 30 reserves, on hi ha dos casos amb 25 i 30 habitacions (colors verd-clar/groc) que porten el temps de planificació fins als 380–410 ms; en aquestes configuracions, la combinació de moltes reserves, moltes habitacions i l’horitzó temporal fa explotar el nombre de possibles assignacions i solapaments, de manera que el planificador ha d’explorar moltíssimes més alternatives abans de trobar una solució òptima. 
 En termes d’anàlisi, el gràfic evidencia que el nombre de reserves és un paràmetre clau de dificultat i que, quan es combina amb un nombre alt d’habitacions, l’espai de cerca creix de forma fortament no lineal, produint increments de temps de diversos factors en comparació amb les instàncies petites.
+
+#### 3.3.2.2 Problema 3: Playtime
+En aquest experiment, un cop analitzats tant el pes com el temps d'execució, plantejarem un problema no trivial pensat per a que el planificador hagi d'utilitzar les mètriques per a arribar a una solució optima. Analitzarem el seu comportament i les repostes que dona per veure si aquesta extensió funciona correctament.
+
+El problema amb el que treballarem serà `experiment3.py`.
+Aquest problema ha estat dissenyat amb cinc reserves i quatre habitacions de capacitats heterogènies, amb solapaments de dies que fan que no sigui possible assignar les reserves de manera arbitrària. Cada reserva té un nombre diferent de persones i ocupa dies que en molts casos coincideixen parcialment amb altres reserves, creant conflictes d’assignació.
+Un cop definit el problema, executarem el planificador Metric-FF amb la mètrica definida. Analitzarem pas a pas les assignacions que fa, quines reserves són descartades, quins desaprofitaments es produeixen i com la mètrica afecta les decisions. D’aquesta manera podrem veure si l’extensió 3 està funcionant correctament i si el planificador és capaç de prioritzar la no descartació de reserves i, alhora, reduir al mínim el desaprofitament de places.
+El planificador Metric-FF ha generat el següent pla:
+```bash
+metric established (normalized to minimize): ((100.00*[RF1](TOTAL-RESERVES-DESCARTADES)1.00*[RF0](TOTAL-PLACES-DESCARTADES)) - () + 0.00)
+
+checking for cyclic := effects --- OK.
+
+ff: search configuration is  best-first on 1*g(s) + 5*h(s) where
+    metric is ((100.00*[RF1](TOTAL-RESERVES-DESCARTADES)1.00*[RF0](TOTAL-PLACES-DESCARTADES)) - () + 0.00)
+
+advancing to distance:    5
+                          4
+                          3
+                          2
+                          1
+                          0
+
+ff: found legal plan as follows
+
+step    0: ASSIGNAR-HABITACIO R2 H2
+        1: ASSIGNAR-HABITACIO R1 H4
+        2: DESCARTAR-RESERVA R3
+        3: ASSIGNAR-HABITACIO R5 H3
+        4: ASSIGNAR-HABITACIO R4 H1
+
+
+time spent:    0.00 seconds instantiating 5 easy, 12 hard action templates
+               0.00 seconds reachability analysis, yielding 47 facts and 17 actions
+               0.00 seconds creating final representation with 44 relevant facts, 2 relevant fluents
+               0.00 seconds computing LNF
+               0.00 seconds building connectivity graph
+               0.00 seconds searching, evaluating 192 states, to a max depth of 0
+               0.00 seconds total time
+```
+Analitzem si aquesta solució pot considerar-se bona dins dels criteris establerts:
+
+1. **Compliment de restriccions:** Totes les reserves assignades utilitzen habitacions amb suficient capacitat i es minimitzen les places descartades correctament. Per exemple, la reserva r5 (5 persones) s’assigna a l’habitació h3 (6 places), que és l’única disponible que pot allotjar-la. La reserva r2 (2 persones) s'assigna a l'habitació h2 (2 persones). i així amb totes les reserves assignades: totes van cap a l'habitació mes petita disponible. Ademés, no hi ha dues reserves assignades a la mateixa habitació en dies coincidints, respectant perfectament la restricció de solapament.
+
+2. **Descarts i optimització:** Només una reserva ha estat descartada: r3. Aquesta decisió és necessària, ja que no hi havia cap habitació disponible que complís alhora la capacitat i la disponibilitat de dies. L’extensió 3 està dissenyada per minimitzar el desaprofitament de places. En aquesta solució, el desaprofitament total és molt baix (1 plaça), el que indica que, dins de les limitacions, s’ha fet un ús eficient de les habitacions.
+
+3. **Raonament sobre la qualitat:** Observem que la solució prioritza correctament els criteris definits a la mètrica: evita descartar reserves sempre que sigui possible i redueix el desaprofitament de places dins de les opcions factibles.
+
+En conclusió, podem considerar la solució bona i coherent amb els objectius de l'extensió 3:
+- Processa la majoria de reserves.
+- Respecta totes les restriccions de capacitat i solapament.
+- Minimitza el desaprofitament dins del possible.
+Aquest anàlisi mostra que el model i la implementació de l’extensió 3 funcionen correctament i ofereixen solucions viables i eficients, fins i tot en situacions complexes.
 
 ## 3.4 Extensió 4
 
