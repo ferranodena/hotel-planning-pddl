@@ -288,7 +288,6 @@ font-family: Helvetica, Arial, sans-serif;
   - [3.1.2 Problemes](#312-problemes)
     - [3.1.2.1 Problema 1: Dilema de l'optimització](#3121-problema-1-dilema-de-loptimització)
     - [3.1.2.2 Problema 2: L'hotel creixent](#3122-problema-2-lhotel-creixent)
-    - [3.1.2.3 Possible problema 3: Afecta en quin punt de la reserva es concentrin les reserves? (principi, mig, final de mes)](#3123-possible-problema-3-afecta-en-quin-punt-de-la-reserva-es-concentrin-les-reserves-principi-mig-final-de-mes)
 - [3.2 Extensió 2](#32-extensió-2)
   - [3.2.1 Domini](#321-domini)
   - [3.2.2 Problemes](#322-problemes)
@@ -297,48 +296,45 @@ font-family: Helvetica, Arial, sans-serif;
 - [3.3 Extensió 3](#33-extensió-3)
   - [3.3.1 Domini](#331-domini)
   - [3.3.2 Problemes](#332-problemes)
-    - [3.3.2.1 Problema 1](#3321-problema-1)
-    - [3.3.2.2 Problema 2](#3322-problema-2)
+    - [3.3.2.1 Problema 1: El pes](#3321-problema-1-el-pes)
+    - [3.3.2.2 Problema 2: Complexitat temporal](#3322-problema-2-complexitat-temporal)
+    - [3.3.2.2 Problema 3: Playtime](#3322-problema-3-playtime)
 - [3.4 Extensió 4](#34-extensió-4)
   - [3.4.1 Domini](#341-domini)
   - [3.4.2 Problemes](#342-problemes)
-    - [3.4.2.1 Problema 1](#3421-problema-1)
+  - [3.4.2.1 Experiment 1: El dilema de la concentració](#3421-experiment-1-el-dilema-de-la-concentració)
     - [3.4.2.2 Problema 2](#3422-problema-2)
 - [4. Conclusions](#4-conclusions)
 
 <div class="page-break"></div>
 
 ## 1. Introducció
+
 En aquest treball es tracta el problema de l’assignació de reserves d’un hotel utilitzant tècniques de planificació automàtica amb el llenguatge PDDL. Aquest tipus de problemes són molt comuns en situacions reals, ja que gestionar correctament les reserves és essencial per garantir un bon funcionament d’un hotel i aprofitar al màxim les habitacions disponibles.
 
 El sistema ha de ser capaç d’assignar les diferents peticions de reserva a les habitacions tenint en compte diverses restriccions, com ara que la capacitat de l’habitació sigui suficient per al nombre de persones i que no hi hagi solapaments en les ocupacions dins del mateix mes. A més, el treball no només planteja un cas bàsic, sinó que també inclou diferents extensions on s’introdueixen criteris d’optimització, com maximitzar el nombre de reserves acceptades, tenir en compte la preferència d’orientació de les habitacions, minimitzar el desaprofitament de places i reduir el nombre total d’habitacions utilitzades.
-
 
 <div class="page-break"></div>
 
 ## 2. Objectius i metodologia
 
 1. **Objectius**
-L’objectiu principal d’aquest treball és desenvolupar un sistema de planificació capaç d’assignar correctament les reserves d’un hotel a les diferents habitacions utilitzant el llenguatge PDDL i el planificador metric-ff. Aquesta assignació ha de complir les restriccions bàsiques del problema, com ara la capacitat mínima de les habitacions i l’absència de solapaments temporals entre reserves dins d’una mateixa habitació.
+   L’objectiu principal d’aquest treball és desenvolupar un sistema de planificació capaç d’assignar correctament les reserves d’un hotel a les diferents habitacions utilitzant el llenguatge PDDL i el planificador metric-ff. Aquesta assignació ha de complir les restriccions bàsiques del problema, com ara la capacitat mínima de les habitacions i l’absència de solapaments temporals entre reserves dins d’una mateixa habitació.
 
-A més d’aquest objectiu general, també es volen assolir els següents objectius específics:
+   A més d’aquest objectiu general, també es volen assolir els següents objectius específics:
 
-- Modelar correctament el domini del problema en PDDL, definint predicats, funcions numèriques i accions.
-
-- Implementar el nivell bàsic del problema assegurant que totes les reserves s’assignen correctament o, en cas contrari, no se n’assigna cap.
-
-- Desenvolupar les diferents extensions proposades, introduint criteris d’optimització com la maximització del nombre de reserves assignades, la satisfacció de les preferències d’orientació, la minimització del desaprofitament de places i la reducció del nombre d’habitacions utilitzades.
-
-- Analitzar els resultats obtinguts en cada extensió i comparar el comportament del sistema segons els diferents criteris d’optimització.
+   - Modelar correctament el domini del problema en PDDL, definint predicats, funcions numèriques i accions.
+   - Implementar el nivell bàsic del problema assegurant que totes les reserves s’assignen correctament o, en cas contrari, no se n’assigna cap.
+   - Desenvolupar les diferents extensions proposades, introduint criteris d’optimització com la maximització del nombre de reserves assignades, la satisfacció de les preferències d’orientació, la minimització del desaprofitament de places i la reducció del nombre d’habitacions utilitzades.
+   - Analitzar els resultats obtinguts en cada extensió i comparar el comportament del sistema segons els diferents criteris d’optimització.
 
 2. **Metodologia**
-Per al desenvolupament d’aquest treball s’ha seguit una metodologia basada en la modelització progressiva del problema en PDDL. En primer lloc, s’ha analitzat detalladament l’enunciat per identificar els elements principals del domini, com ara les habitacions, les reserves, els dies del mes i les diferents restriccions existents.
 
-Un cop definits aquests elements, s’ha creat el domini PDDL, on s’han especificat els tipus d’objectes, els predicats necessaris per representar l’estat del sistema i les funcions numèriques per poder expressar els criteris d’optimització. A continuació, s’han definit les accions que permeten dur a terme l’assignació de reserves a les habitacions, tenint en compte tant les restriccions de capacitat com les de no solapament.
+   Per al desenvolupament d’aquest treball s’ha seguit una metodologia basada en la modelització progressiva del problema en PDDL. En primer lloc, s’ha analitzat detalladament l’enunciat per identificar els elements principals del domini, com ara les habitacions, les reserves, els dies del mes i les diferents restriccions existents.
+   Un cop definits aquests elements, s’ha creat el domini PDDL, on s’han especificat els tipus d’objectes, els predicats necessaris per representar l’estat del sistema i les funcions numèriques per poder expressar els criteris d’optimització. A continuació, s’han definit les accions que permeten dur a terme l’assignació de reserves a les habitacions, tenint en compte tant les restriccions de capacitat com les de no solapament.
+   Posteriorment, s’han creat diferents fitxers de problema, fets a mà o per un generador, per provar el funcionament del sistema en el nivell bàsic i en cadascuna de les extensions. Per a l’obtenció de les solucions s’ha utilitzat el planificador metric-ff, que permet treballar amb funcions numèriques i criteris d’optimització.
+   Finalment, s’han analitzat els plans generats pel planificador per comprovar si compleixen les restriccions establertes i si optimitzen correctament els criteris definits en cada extensió. A partir d’aquesta anàlisi, s’han extret les conclusions sobre el funcionament i l’eficàcia del model desenvolupat.
 
-Posteriorment, s’han creat diferents fitxers de problema, fets a mà o per un generador, per provar el funcionament del sistema en el nivell bàsic i en cadascuna de les extensions. Per a l’obtenció de les solucions s’ha utilitzat el planificador metric-ff, que permet treballar amb funcions numèriques i criteris d’optimització.
-
-Finalment, s’han analitzat els plans generats pel planificador per comprovar si compleixen les restriccions establertes i si optimitzen correctament els criteris definits en cada extensió. A partir d’aquesta anàlisi, s’han extret les conclusions sobre el funcionament i l’eficàcia del model desenvolupat.
 <div class="page-break"></div>
 
 ## 3. Disseny del domini i dels problemes
@@ -349,7 +345,7 @@ L'extensió bàsica del domini `hotelbasic` implementa la funcionalitat fonament
 
 ### 3.0.1 Domini
 
-El domini `hotelbasic` modela un problema d'assignació de recursos (scheduling) on un conjunt de peticions (`reserva`) han de ser assignades a recursos limitats (`habitacio`) durant uns intervals de temps específics (`dia`).
+El domini [`hotelbasic`](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/basic/domini_basic.pddl) modela un problema d'assignació de recursos (scheduling) on un conjunt de peticions (`reserva`) han de ser assignades a recursos limitats (`habitacio`) durant uns intervals de temps específics (`dia`).
 
 1. Tipus (**`:types`**)
    El domini defineix tres entitats bàsiques que estructuren el problema:
@@ -399,6 +395,8 @@ L'única acció del sistema en la seva implementació bàsica és **`assignar-ha
 
 D'aquesta manera, el domini bàsic estableix les regles fonamentals per a l'assignació d'habitacions a reserves, gestionant les restriccions de compatibilitat i no-solapament temporal. Aquest marc servirà com a base per a les extensions posteriors, on s'afegiran funcionalitats més avançades per millorar la flexibilitat i l'eficiència del sistema de planificació.
 
+També programarem un generador de problemes [`generador_basic.py`](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/basic/generador_basic.py) que ens permeti crear fitxers de problema amb diferents configuracions d'habitacions i reserves, facilitant així la prova i l'avaluació del domini en diversos escenaris. Un fitxer d'exemple generat es pot consultar [aquí](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/basic/temp_experiments_basic_1/p_r10_h2_rep1.pddl)
+
 ### 3.0.2 Problemes
 
 #### 3.0.2.1 Problema 1: Poques habitacions, moltes reserves
@@ -420,7 +418,7 @@ Hipòtesi sobre l'escalabilitat del planificador:
 - $H_0$: El temps d'execució del planificador creix linealment amb el nombre de reserves, indicant una gestió eficient de l'espai de cerca.
 - $H_1$: El temps d'execució del planificador creix de manera no lineal (ràpid) amb el nombre de reserves, indicant un augment combinatorial de l'espai de cerca.
 
-Generem doncs diversos problemes amb 2 habitacions i un nombre creixent de reserves (1, 2, .... fins a 10) amb el nostre generador de problemes. Provem d'executar-los amb el planificador i mesurem el temps d'execució i les habitacions assignades amb èxit per a cada cas. Generem la quantitat de reserves de manera aleatòria completament, per la qual cosa els resultats poden variar lleugerament entre execucions. Executem cada problema diverses vegades i prenem la mitjana per obtenir resultats més fiables. Com que l'assignació és greedy, esperem que el nombre d'assignacions sigui proper al màxim possible (2 habitacions * nombre de reserves que caben sense solapament), però lògicament aquests casos seran difícils en termes generals exactament degut a l'atzar en la generació de reserves. Per tant esperem que el nombre d'assignacions sigui baix, i que hi hagi molts conflictes entre reserves, per tant que el planificador no convergeixi. Tot i així, el temps d'execució hauria de ser creixent, ja que el planificador haurà d'explorar moltes possibilitats per trobar la millor assignació possible, tot i que aquesta no sigui possible en aquest domini.
+Generem doncs diversos problemes com [aquest](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/basic/temp_experiments_basic_1/p_r10_h2_rep1.pddl) amb 2 habitacions i un nombre creixent de reserves (1, 2, .... fins a 10) amb el nostre generador de problemes. Provem d'executar-los amb el planificador i mesurem el temps d'execució i les habitacions assignades amb èxit per a cada cas. Generem la quantitat de reserves de manera aleatòria completament, per la qual cosa els resultats poden variar lleugerament entre execucions. Executem cada problema diverses vegades i prenem la mitjana per obtenir resultats més fiables. Com que l'assignació és greedy, esperem que el nombre d'assignacions sigui proper al màxim possible (2 habitacions * nombre de reserves que caben sense solapament), però lògicament aquests casos seran difícils en termes generals exactament degut a l'atzar en la generació de reserves. Per tant esperem que el nombre d'assignacions sigui baix, i que hi hagi molts conflictes entre reserves, per tant que el planificador no convergeixi. Tot i així, el temps d'execució hauria de ser creixent, ja que el planificador haurà d'explorar moltes possibilitats per trobar la millor assignació possible, tot i que aquesta no sigui possible en aquest domini.
 
 Pel que fa a la quantitat de reserves assignades, obtenim els següents resultats:
 
@@ -446,8 +444,6 @@ Pel que fa al temps d'execució, obtenim els següents resultats:
 En primer lloc, l'anàlisi del temps de computació mostra un comportament aparentment estable. Tal com s'observa en el gràfic d'escalabilitat, el temps mitjà d'execució es manté constant al voltant dels 90 ms, independentment de la mida del problema. Aquesta constància, lluny d'indicar una eficiència algorítmica en la resolució de problemes complexos, denota una fallada prematura. En situacions de saturació *on el nombre de reserves supera àmpliament la capacitat disponible*, el planificador no inverteix temps a cercar solucions complexes perquè l'espai de cerca es tanca ràpidament. El sistema detecta la impossibilitat de satisfer totes les restriccions rígides del domini bàsic i conclou l'execució amb un veredicte d'insolubilitat de manera gairebé immediata. Per tant, la latència baixa i constant no reflecteix escalabilitat, sinó la incapacitat del model per gestionar el conflicte.
 
 Podem destacar però els casos de 2 i 4 reserves, on el temps d'execució no és superior i sí que aconsegueix assignar un nombre reduït d'habitacions. Això es deu a que en aquests casos el planificador és capaç de trobar una assignació vàlida en 6/10 i 1/10 casos respectivament, i per tant ha d'invertir més temps en explorar l'espai de cerca. En aquests casos, el planificador encara pot trobar solucions, però a mesura que la càrrega augmenta, la probabilitat de trobar una assignació vàlida cau dràsticament, i el sistema opta per abortar ràpidament.
-
-Aquesta interpretació es confirma en analitzar la degradació del servei. El gràfic comparatiu entre estabilitat i capacitat  evidencia un col·lapse abrupte del sistema. Amb una càrrega baixa (1 reserva), el sistema presenta una fiabilitat elevada (~80%) i satisfà una part significativa de la demanda. No obstant això, la fiabilitat cau dràsticament en augmentar la càrrega a 2 i 3 reserves, fins a arribar a un punt de ruptura a partir de les 4 reserves, on la taxa d'èxit es desploma al 0%.
 
 Aquesta interpretació es confirma en analitzar la degradació del servei. El gràfic comparatiu entre estabilitat i capacitat evidencia un col·lapse abrupte del sistema en condicions de saturació. Amb una càrrega inicial de 2 reserves, el sistema presenta una fiabilitat moderada (~60%) i satisfà aproximadament un 35% de la demanda total. No obstant això, la robustesa del planificador cau dràsticament en duplicar la càrrega a 4 reserves, on la fiabilitat es desploma fins al ~10%. El punt de ruptura definitiu s'assoleix a partir de les 6 reserves, moment en el qual la taxa d'èxit esdevé nul·la (0%), indicant la incapacitat total del domini bàsic per gestionar escenaris amb una demanda superior a la capacitat instal·lada.
 
@@ -477,7 +473,7 @@ Hipòtesi sobre l'escalabilitat del planificador:
 - $H_0$: El temps d'execució del planificador creix de manera no lineal amb el nombre d'habitacions, indicant una gestió ineficient de l'espai de cerca.
 - $H_1$: El temps d'execució del planificador creix de manera lineal o sublineal amb el nombre d'habitacions, indicant una gestió eficient de l'espai de cerca.
 
-Generarem problemes amb un nombre d'habitacions creixent (1, 10, 20, ..., fins a 100) i només 2 reserves. Executarem cada problema diverses vegades i prendrem la mitjana per obtenir resultats més fiables. Esperem que el nombre d'assignacions sigui sempre 2 (totes les reserves assignades) i que el temps d'execució sigui baix i creixi lentament a mesura que augmenta el nombre d'habitacions. Mantenim el nombre de dies a 10 per a tots els experiments.
+Generarem problemes com [aquest](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/basic/temp_experiments_basic_2/p_r5_h100_rep1.pddl) amb un nombre d'habitacions creixent (1, 10, 20, ..., fins a 100) i només 2 reserves. Executarem cada problema diverses vegades i prendrem la mitjana per obtenir resultats més fiables. Esperem que el nombre d'assignacions sigui sempre 2 (totes les reserves assignades) i que el temps d'execució sigui baix i creixi lentament a mesura que augmenta el nombre d'habitacions. Mantenim el nombre de dies a 10 per a tots els experiments.
 
 Pel que fa a la quantitat de reserves assignades, obtenim els següents resultats:
 
@@ -499,7 +495,7 @@ Pel que fa al temps d'execució, obtenim els següents resultats:
   </div>
 </div>
 
-Veiem un creixement lineal en el temps d'execució a mesura que augmenta el nombre d'habitacions, confirmant la nostra hipòtesi sobre l'eficiència del planificador en aquest escenari. Com que el temps d'execució és molt baix en general, això indica que el planificador gestiona molt bé l'abundància de recursos. Anem un pas més enllà i augmentem el nombre d'habitacions de 50 en 50 fins a 300 per veure si el comportament es manté. Obtenim els següents resultats:
+Veiem un creixement lineal en el temps d'execució a mesura que augmenta el nombre d'habitacions, confirmant la nostra hipòtesi sobre l'eficiència del planificador en aquest escenari. Com que el temps d'execució és molt baix en general, això indica que el planificador gestiona molt bé l'abundància de recursos. Anem un pas més enllà i augmentem el nombre d'habitacions de 50 en 50 fins a [300 habitacions](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/basic/temp_experiments_basic_2.1/p_r5_h300_rep1.pddl) per veure si el comportament es manté. Obtenim els següents resultats:
 
 <div class="image-row">
   <div class="image-column">
@@ -525,7 +521,7 @@ També s'inclou una nova manera de saber la compatibilitat entre reserves i habi
 
 ### 3.1.1 Domini
 
-El domini `hotel-extensio1` representa una evolució significativa respecte a la seva versió bàsica, incorporant una lògica més realista i flexible per a la gestió de reserves en un entorn de recursos limitats. Les principals diferències estructurals són la introducció de funcions numèriques (`:fluents`).
+El domini [`hotel-extensio1`](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext1/dom1.pddl) representa una evolució significativa respecte a la seva versió bàsica, incorporant una lògica més realista i flexible per a la gestió de reserves en un entorn de recursos limitats. Les principals diferències estructurals són la introducció de funcions numèriques (`:fluents`).
 
 1. **Ús de Funcions Numèriques (`:functions`)**  
    A diferència del domini bàsic, aquesta extensió fa ús de funcions numèriques per modelar atributs quantitatius:
@@ -546,11 +542,13 @@ El domini `hotel-extensio1` representa una evolució significativa respecte a la
    La funció `(total-descartades)` s'incrementa (`increase`) cada cop que s'executa l'acció `descartar-reserva`.  
    Combinat amb una definició de problema que inclogui `(:metric minimize (total-descartades))`, el planificador ja no busca qualsevol pla, sinó el pla òptim: aquell que minimitza el nombre de reserves descartades. Això és equivalent a maximitzar les reserves assignades, transformant el problema de planificació en un problema d'optimització. S'ha fet aixi i no al revés per facilitar per disseny del planificador, que ha de treballar amb funcions de minimització que puguin créixer durant l'execució.
 
+També programem un script de Python per generar problemes en aquest domini. El generador es pot consultar [aquí](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext1/generador_1.py). Un exemple de fitxer de problema generat es pot consultar [aquí](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext1/prob0101.pddl)
+
 ### 3.1.2 Problemes
 
 #### 3.1.2.1 Problema 1: Dilema de l'optimització
 
-Aquest problema busca demostrar que el planificador és intel·ligent en la seva capacitat per maximitzar les assignacions, fins i tot quan això implica prendre decisions no òbvies: ha de preferir assignar dues reserves curtes en lloc d'una reserva llarga si ocupen la mateixa habitació, ja que l'objectiu és maximitzar les assignacions. Per aïllar aquest comportament, hem de dissenyar un escenari on assignar de manera greedy (assignar la primera habitació lliure) sigui el pitjor camí per maximitzar les assignacions. Per tant, programem un problema `prob0101.pddl`amb una habitació ``h1`` i tres reserves ``r1``, ``r2`` i ``r3`` amb les següents característiques:
+Aquest problema busca demostrar que el planificador és intel·ligent en la seva capacitat per maximitzar les assignacions, fins i tot quan això implica prendre decisions no òbvies: ha de preferir assignar dues reserves curtes en lloc d'una reserva llarga si ocupen la mateixa habitació, ja que l'objectiu és maximitzar les assignacions. Per aïllar aquest comportament, hem de dissenyar un escenari on assignar de manera greedy (assignar la primera habitació lliure) sigui el pitjor camí per maximitzar les assignacions. Per tant, programem un problema [`prob0101.pddl`](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext1/prob0101.pddl)amb una habitació ``h1`` i tres reserves ``r1``, ``r2`` i ``r3`` amb les següents característiques:
 
 - ``r1``: dies 1-4
 - ``r2``: dies 1-2
@@ -596,7 +594,7 @@ La desviació estàndard de la distribució normal es pot definir com una funci�
 
 D'aquesta manera, el generador no només produirà problemes aleatoris, sinó que permetrà controlar matemàticament el grau de saturació temporal del sistema. A mesura que augmenta el `conflict_ratio`, el planificador s'enfronta a un problema de tipus *Tetris*, on ha de decidir estratègicament quines reserves assignar per maximitzar l'ocupació, descartant aquelles que bloquegen massa espai i impedeixen encaixar altres peticions més curtes. Aquest mecanisme fa que els experiments siguin reproducibles i que els resultats reflecteixin de forma clara la capacitat d'optimització del planificador sota pressió de recursos.
 
-El resultat obtingut ha sigut un script de Python que genera problemes seguint aquesta lògica:
+El resultat obtingut ha sigut un [script de Python](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext1/generador1.1.py) que genera problemes seguint aquesta lògica:
 
 El càlcul del **`conflict_ratio`** $C$ no és una ràtio directa (com "dies ocupats / totals"), sinó un **paràmetre de control (0.0 a 1.0)** que modifica la desviació estàndard ($\sigma$) d'una distribució normal per concentrar les reserves. El `conflict_ratio` ($C$) determina l'amplada de la campana de Gauss centrada al dia $D_{centre} = \frac{\text{Dies Totals}}{2}$. Simulant així certa concentració de reserves en els dies centrals.
 
@@ -614,7 +612,7 @@ El 0.4 és un factor d'ajust que determina l'amplitud de la campana. Amb aquest 
 
 Per tant, el número `conflict_ratio` és un **"índex d'estretor"**: com més proper a 1, més estret és l'interval de dies on tothom vol reservar. Per exemple: per un `conflict_ratio` de 0.8 en un calendari de 25 dies: $ \sigma = 25 \times (1.1 - 0.8) \times 0.4 = 3$ Això significa que la majoria de reserves començaran dins d'un interval de 6 dies al voltant del dia 12.5 (el centre), generant molts solapaments i conflictes. En canvi, per un `conflict_ratio` de 0.2: $ \sigma = 25 \times (1.1 - 0.2) \times 0.4 = 9$ Aquí, les reserves es distribuiran més àmpliament, amb menys solapaments.
 
-Generarem doncs un conjunt de problemes amb 5 habitacions i 20 reserves, amb un nombre de dies fixat a 25 (tot i que l'enunciat indica 30 dies, hem decidit canviar-ho momentàniament pel bé del generador de problemes, ja que 25 dies permet una millor gestió dels solapaments amb 20 reserves) i un `conflict_ratio` variable (0.0, 0.1, 0.2, ... 1.0). Executarem cada problema 10 vegades i prendrem la mitjana per obtenir resultats més fiables.
+Generarem doncs un conjunt de problemes com [aquest](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext1/temp_exp/p_conf0.8_rep1.pddl) amb 5 habitacions i 20 reserves, amb un nombre de dies fixat a 25 (tot i que l'enunciat indica 30 dies, hem decidit canviar-ho momentàniament pel bé del generador de problemes, ja que 25 dies permet una millor gestió dels solapaments amb 20 reserves) i un `conflict_ratio` variable (0.0, 0.1, 0.2, ... 1.0). Executarem cada problema 10 vegades i prendrem la mitjana per obtenir resultats més fiables.
 
 Aquests nombres s'han seleccionat així perquè voliem una concentració mitjana d'ús de l'hotel d'un 50%, és a dir, que en mitjana hi hagi la meitat d'habitacions ocupades.
 
@@ -658,7 +656,7 @@ Al problema anterior hem vist que el planificador és capaç de maximitzar les a
 
 Aquest problema busca demostrar la **robustesa** del planificador davant l'explosió combinatòria. En planificació automàtica, afegir una sola habitació o reserva no suma complexitat, sinó que multiplica l'espai d'estats que l'algorisme ha d'explorar. Per aïllar el factor "mida" del factor "dificultat intrínseca", mantenim la densitat de conflictes constant (la proporció entre oferta i demanda no canvia), però augmentem el volum absolut de dades.
 
-Concretament, dissenyem una sèrie de problemes incrementals on la relació es manté a 6 habitacions per cada 10 reserves, començant per instàncies petites i acabant en instàncies grans. En aquest escenari, s'espera que el planificador hagi de fer front a un nombre molt més elevat de branques de decisió. Si el planificador és escalable, hauria de mantenir un percentatge d'èxit (assignacions/total) similar en totes les mides, tot i que el temps d'execució probablement augmentarà.
+Concretament, dissenyem una sèrie de problemes com [aquest](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext1/temp_exp_2/p_conf0.6_rep1.pddl) incrementals on la relació es manté a 6 habitacions per cada 10 reserves, començant per instàncies petites i acabant en instàncies grans. En aquest escenari, s'espera que el planificador hagi de fer front a un nombre molt més elevat de branques de decisió. Si el planificador és escalable, hauria de mantenir un percentatge d'èxit (assignacions/total) similar en totes les mides, tot i que el temps d'execució probablement augmentarà.
 
 Plantegem el següent parell d'hipòtesis per a aquest experiment:
 
@@ -690,17 +688,13 @@ Per tant, respecte a les nostres hipòtesis:
 - En l'escenari d'augment de mida, rebutgem $H_0$ i acceptem $H_1$, ja que el planificador demostra una capacitat notable per mantenir la qualitat de la solució (100% d'assignacions) independentment de la mida del problema.
 - Pel que fa a l'escalabilitat, acceptem $H_0$ i rebutgem $H_1$, ja que el temps d'execució del planificador creix de manera exponencial amb l'augment de la mida del problema, indicant una gestió ineficient de l'espai de cerca.
 
-#### 3.1.2.3 Possible problema 3: Afecta en quin punt de la reserva es concentrin les reserves? (principi, mig, final de mes)
-
-Center day (linia 42 del generador 1.1), enlloc del dia central podria ser dels primers o dels ultims.
-
 ## 3.2 Extensió 2
 
 Per aquesta extensió, s'afegeix la possibilitat de tenir preferències en les reserves, concretament l'orientació de l'habitació (nord, sud, est, oest). Aquestes preferències no són restrictives, és a dir, una reserva pot ser assignada a una habitació amb una orientació diferent de la demanada, però es prioritza assignar habitacions amb l'orientació desitjada per maximitzar la satisfacció del client. Partim de la primera extensió, on l'objectiu és maximitzar el nombre de reserves assignades, i afegim aquesta nova capa de preferències per millorar la qualitat de les assignacions.
 
 ### 3.2.1 Domini
 
-El domini `hotel-extensio2` és una evolució del domini de l'extensió 1, amb la incorporació de preferències d'orientació per a les reserves. Les principals diferències estructurals són les següents:
+El domini [`hotel-extensio2`](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext2/dom2.pddl) és una evolució del domini de l'extensió 1, amb la incorporació de preferències d'orientació per a les reserves. Les principals diferències estructurals són les següents:
 
 1. Nous tipus i predicats introduïts
 
@@ -737,7 +731,7 @@ El domini `hotel-extensio2` és una evolució del domini de l'extensió 1, amb l
 
 3. Reajustament de les penalitzacions
 
-Aquesta diferència estableix implícitament una **jerarquia de decisions**: és preferible assignar una habitació amb orientació incorrecta (cost 1) que deixar la reserva sense processar (cost 2). El planificador, en minimitzar `total-descartades`, prioritzarà fer assignacions imperfectes abans que abandonar completament les reserves, així maximitzant l'ocupació tot i comprometre la qualitat.
+Aquesta diferència estableix implícitament una **jerarquia de decisions**: és preferible assignar una habitació amb orientació incorrecta (cost 1) que deixar la reserva sense processar (cost 2). El planificador, en minimitzar `total-descartades`, prioritzarà fer assignacions imperfectes abans que abandonar completament les reserves, així maximitzant l'ocupació tot i comprometre la qualitat. També programem un script per generar problemes amb preferències d'orientació de manera aleatòria, assegurant una distribució equilibrada entre habitacions i reserves. Es pot consultar [aquí](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext2/generador2.py). Un exemple de fitxer de problema generat es pot consultar [aquí](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext2/prob0201.pddl)
 
 ### 3.2.2 Problemes
 
@@ -803,7 +797,7 @@ Per tant, aquest experiment demostra que el planificador és capaç d'optimitzar
 
 La resposta d'un programa se li assignarà una puntuació basada en les assignacions descartades, de la mateixa manera que fa el propi planner. Cada assignació que no compleixi la preferència d'orientació sumarà 1 punt a la puntuació total (penalització). Cada reserva que no s'assigni sumarà 2 punts a la puntuació total (penalització). L'objectiu és minimitzar aquesta puntuació, és a dir, maximitzar les assignacions que compleixin les preferències d'orientació.
 
-Li demanem a la LLM **Gemini 3 Pro** que ens dissenyi un generador de problemes per a aquest domini, seguint les mateixes línies que el generador de l'extensió 1, però afegint preferències d'orientació a les reserves i orientacions a les habitacions. El generador ha de permetre controlar la proporció de reserves que tenen preferències d'orientació que coincideixen amb les habitacions disponibles, així com la proporció de reserves que no poden ser assignades a cap habitació per no complir la capacitat o els dies. Aquesta proporció ha de ser un paràmetre d'entrada del generador.
+Li demanem a la LLM **Gemini 3 Pro** que ens dissenyi un [generador de problemes](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext2/generador2.1.py) per a aquest domini, seguint les mateixes línies que el generador de l'extensió 1, però afegint preferències d'orientació a les reserves i orientacions a les habitacions. El generador ha de permetre controlar la proporció de reserves que tenen preferències d'orientació que coincideixen amb les habitacions disponibles, així com la proporció de reserves que no poden ser assignades a cap habitació per no complir la capacitat o els dies. Aquesta proporció ha de ser un paràmetre d'entrada del generador.
 
 El resultat obtingut ha sigut un script de Python que genera problemes seguint aquesta lògica:
 
@@ -826,7 +820,7 @@ Com també volem veure si el rendiment es veu afectat per la mida del problema, 
 - $H_0$: El temps d'execució del planificador creix de manera no lineal amb l'augment del nombre d'habitacions i reserves, indicant una gestió ineficient de l'espai de cerca.
 - $H_1$: El temps d'execució del planificador creix de manera lineal o sublineal amb l'augment del nombre d'habitacions i reserves, indicant una gestió eficient de l'espai de cerca.
 
-Per tant, provem d'experimentar amb diferents valors de ``prob_match`` (0.0, 0.1, 0.2, ..., 1.0) per veure com afecta la capacitat del planificador per minimitzar la puntuació total (penalitzacions). Per aïllar l'impacte de les preferències d'orientació, mantenim el nombre d'habitacions i reserves fix de 30 i 18 respectivament, perquè ja sabem, per experiments anteriors, que el planificador és capaç de gestionar aquesta mida eficientment però hi ha certa competència entre reserves. També mantenim el nombre de dies fixat a 30. Mesurarem la puntuació total obtinguda pel planificador per a cada valor de ``prob_match``, repetint cada experiment 10 vegades per mitigar el soroll en la mesura. Els resultats obtinguts són els següents:
+Per tant, provem d'experimentar amb diferents valors de ``prob_match`` (0.0, 0.1, 0.2, ..., 1.0) per veure com afecta la capacitat del planificador per minimitzar la puntuació total (penalitzacions). Per aïllar l'impacte de les preferències d'orientació, mantenim el nombre d'habitacions i reserves fix de 30 i 18 respectivament, perquè ja sabem, per experiments anteriors, que el planificador és capaç de gestionar aquesta mida eficientment però hi ha certa competència entre reserves. També mantenim el nombre de dies fixat a 30. Mesurarem la puntuació total obtinguda pel planificador per a cada valor de ``prob_match``, repetint cada experiment 10 vegades per mitigar el soroll en la mesura. Un exemple d'un problema es pot consultar [aquí](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext2/temp_exp_qualitat/p_qualitat_r12_m0.0_rep1.pddl). Els resultats obtinguts són els següents:
 
 <div class="image-row">
   <div class="image-column">
@@ -866,9 +860,9 @@ Aquest segon problema, que hem anomenat "Selecció VIP", representa el cim de co
 La utilitat d'aquest experiment rau en la seva capacitat per simular escenaris de gestió hotelera molt més realistes i exigents que els models aïllats. En el món real, els hotels no s'enfronten a problemes de capacitat o de preferències per separat, sinó que sovint pateixen "tempestes perfectes" on l'escassetat d'habitacions xoca amb demandes molt específiques dels clients. Aquest programa posa a prova la "intel·ligència" del planificador en situacions límit. Volem veure si l'algorisme és capaç de detectar "Reserves VIP" (aquelles que encaixen perfectament en l'orientació i temps) i prioritzar-les, o si, per contra, cau en un comportament greedy (voraç) que omple forats ràpidament però sacrifica la qualitat global.
 En permetre controlar tant la ``assignable_ratio`` (pressió temporal) com la ``prob_match`` (alineació qualitativa), podem dibuixar un mapa de calor que ens indiqui on es trenca el sistema. És útil saber fins a quin punt el planificador pot mantenir una bona qualitat de servei (baixa penalització) quan la demanda supera l'oferta i, a més, les preferències dels clients són contràries al disseny de l'hotel.
 El programa serveix per validar si el model de costos (penalitzacions per desorientació vs. descartar) guia correctament la presa de decisions. En un escenari de "Selecció VIP", una decisió òptima podria implicar rebutjar una reserva fàcil per guardar l'habitació per a una reserva complexa però més valuosa (o que encaixa millor), un comportament que només emergirà en aquest entorn combinat.
-Per dur a terme aquest experiment, hem desenvolupat un nou generador de problemes amb l'assistència de la LLM **Gemini 3 Pro**. Aquesta eina ens permet ajustar amb precisió els dos paràmetres crítics d'entrada per crear escenaris sintètics que cobreixin tot l'espectre de dificultat: des de situacions de calma (alta disponibilitat i alta coincidència) fins a escenaris de crisi (baixa disponibilitat i preferències oposades).
+Per dur a terme aquest experiment, hem desenvolupat un [nou generador](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext2/generador2.2.py) de problemes amb l'assistència de la LLM **Gemini 3 Pro**. Aquesta eina ens permet ajustar amb precisió els dos paràmetres crítics d'entrada per crear escenaris sintètics que cobreixin tot l'espectre de dificultat: des de situacions de calma (alta disponibilitat i alta coincidència) fins a escenaris de crisi (baixa disponibilitat i preferències oposades).
 
-Per tant, provem d'experimentar amb diferents valors de ``prob_match`` (0.0, 0.1, 0.2, ..., 1.0) i diferents valors de ``assignable_ratio`` (0.4, 0.5, 0.6, 0.7, 0.8) per veure com afecta la capacitat del planificador per minimitzar la puntuació total (penalitzacions). Mantenim el nombre d'habitacions i reserves fix de 5 i 20 respectivament, i el nombre de dies fixat a 25, que són els nombres que hem trobat gràcies al problema 1 i que ens permeten executar problemes de manera eficient, amb una situació de concentració de reseves però no de col·lapse. Mesurarem la puntuació total obtinguda pel planificador per a cada combinació de valors, repetint cada experiment 5 vegades per mitigar el soroll en la mesura. Els resultats obtinguts són els següents:
+Per tant, provem d'experimentar amb diferents valors de ``prob_match`` (0.0, 0.1, 0.2, ..., 1.0) i diferents valors de ``assignable_ratio`` (0.4, 0.5, 0.6, 0.7, 0.8) per veure com afecta la capacitat del planificador per minimitzar la puntuació total (penalitzacions). Mantenim el nombre d'habitacions i reserves fix de 5 i 20 respectivament, i el nombre de dies fixat a 25, que són els nombres que hem trobat gràcies al problema 1 i que ens permeten executar problemes de manera eficient, amb una situació de concentració de reseves però no de col·lapse. Mesurarem la puntuació total obtinguda pel planificador per a cada combinació de valors, repetint cada experiment 5 vegades per mitigar el soroll en la mesura. Un exemple de problema generat es pot consultar [aquí](https://github.com/carlospalazon/ABIA-practica-2/blob/90327e18c180cec2a10ce771d9604697aef6425d/extensions/ext2/temp_exp2/p_c0.5_m0.0_0.pddl) Els resultats obtinguts són els següents:
 
 Pel que fa a la puntuació, el heatmap obtingut és el següent:
 
@@ -942,29 +936,36 @@ Per als pesos provarem amb els valors 1, 10 i 100 respectivament, i plantejem le
 - $H_1$: El valor del pes sí té un efecte significatiu en la decisió del planificador: existeix un llindar de pes a partir del qual Metric-FF deixa de descartar la reserva i passa a assignar-la a l’habitació òptima.
 
 Aquesta és la sortida del programa per a cada pes respectivament:
-- Quan assignem un pes de 1 al nombre de reserves descartades, és a dir, quan donem la mateixa importància a les places desperdiciades com a les reserves assignades, obtenim la seguent sortida: 
-```bash
-step    0: DESCARTAR-RESERVA R1
-```
-Aquest resultat és especialment revelador. Tot i disposar d’una única reserva i cinc habitacions on hi cap perfectament, el planificador opta per no assignar-la. Per comprendre per què passa això, cal examinar amb detall la definició del domini i, en particular, la mètrica utilitzada. En aquest model, el nombre de places desaprofitades només augmenta quan assignem una reserva a una habitació. Si una reserva no s’assigna, el domini interpreta que no s’està desaprofitant cap plaça, ja que el desaprofitament es calcula com la diferència entre la capacitat de l’habitació i el nombre de persones de la reserva assignada.
 
-Així, quan el pes de descartar i el pes del desaprofitament són idèntics, ambdós costos es troben a la mateixa escala. En aquesta situació, descartar la reserva té un cost total inferior al de qualsevol assignació, ja que totes les habitacions generen un desaprofitament elevat (d’entre 28 i 88 places). Com a conseqüència, el planificador identifica el descart com l’opció que minimitza el cost global i, per tant, la considera la solució òptima. Aquesta observació mostra clarament que, amb un pes tan petit, el criteri de no descartar reserves no queda adequadament reflectit en la mètrica.
+- Quan assignem un pes de 1 al nombre de reserves descartades, és a dir, quan donem la mateixa importància a les places desperdiciades com a les reserves assignades, obtenim la seguent sortida:
+
+   ```bash
+   step    0: DESCARTAR-RESERVA R1
+   ```
+
+   Aquest resultat és especialment revelador. Tot i disposar d’una única reserva i cinc habitacions on hi cap perfectament, el planificador opta per no assignar-la. Per comprendre per què passa això, cal examinar amb detall la definició del domini i, en particular, la mètrica utilitzada. En aquest model, el nombre de places desaprofitades només augmenta quan assignem una reserva a una habitació. Si una reserva no s’assigna, el domini interpreta que no s’està desaprofitant cap plaça, ja que el desaprofitament es calcula com la diferència entre la capacitat de l’habitació i el nombre de persones de la reserva assignada.
+
+   Així, quan el pes de descartar i el pes del desaprofitament són idèntics, ambdós costos es troben a la mateixa escala. En aquesta situació, descartar la reserva té un cost total inferior al de qualsevol assignació, ja que totes les habitacions generen un desaprofitament elevat (d’entre 28 i 88 places). Com a conseqüència, el planificador identifica el descart com l’opció que minimitza el cost global i, per tant, la considera la solució òptima. Aquesta observació mostra clarament que, amb un pes tan petit, el criteri de no descartar reserves no queda adequadament reflectit en la mètrica.
 
 - Quan assignem un pes de 10 al nombre de reserves descartades, el planificador continua produint la mateixa sortida:
-```bash
-step    0: DESCARTAR-RESERVA R1
-```
-En aquest cas, ja estem donant més importància a assignar les reserves, però tot i així el programa troba que no assignar la reserva segueix tenint un cost menor a assignarla i desperdiciar places. En aquest escenari, ja estem penalitzant de manera més severa el fet de descartar una reserva, però el comportament del planificador no canvia. Això indica que, fins i tot amb aquest increment del pes, el cost associat a assignar la reserva a qualsevol de les habitacions disponibles —totes elles amb un desaprofitament de places considerable— continua essent superior al cost de descartar-la. Per tant, el planificador segueix considerant òptima la solució que evita l’assignació, cosa que confirma que un pes de 10 encara és insuficient per compensar la penalització generada pel desaprofitament de places.
+
+   ```bash
+   step    0: DESCARTAR-RESERVA R1
+   ```
+
+   En aquest cas, ja estem donant més importància a assignar les reserves, però tot i així el programa troba que no assignar la reserva segueix tenint un cost menor a assignarla i desperdiciar places. En aquest escenari, ja estem penalitzant de manera més severa el fet de descartar una reserva, però el comportament del planificador no canvia. Això indica que, fins i tot amb aquest increment del pes, el cost associat a assignar la reserva a qualsevol de les habitacions disponibles —totes elles amb un desaprofitament de places considerable— continua essent superior al cost de descartar-la. Per tant, el planificador segueix considerant òptima la solució que evita l’assignació, cosa que confirma que un pes de 10 encara és insuficient per compensar la penalització generada pel desaprofitament de places.
 
 - Quan assignem un pes de 100 al nombre de reserves descartades, el comportament del planificador canvia de manera clara i significativa. La sortida obtinguda és:
-```bash
-step    0: ASSIGNAR-HABITACIO R1 H2
-```
-A diferència dels casos anteriors, ara el planificador decideix assignar la reserva en lloc de descartar-la. A més, no només tria assignar-la, sinó que selecciona l’habitació H2, que és la més petita entre totes les disponibles. Aquesta decisió és coherent amb l’objectiu de minimitzar el desaprofitament de places, ja que assignar una reserva de dues persones a una habitació de capacitat 30 genera un desaprofitament de 28 places, que és el menor possible dins del conjunt d’opcions.
-Aquest resultat és important per dues raons. En primer lloc, confirma que l’augment del pes fins a 100 és suficient per fer que el cost de descartar la reserva sigui percebut com a molt més alt que el cost d’associar-la a qualsevol habitació, fins i tot aquelles amb una capacitat molt elevada. El planificador, per tant, prioritza clarament mantenir la reserva activa. En segon lloc, la selecció de l’habitació H2 demostra que, un cop superada aquesta barrera, Metric-FF també és capaç d’optimitzar el segon criteri de la mètrica, que és minimitzar el desaprofitament de places.
 
-Aquest comportament ens permet extreure diverses conclusions. En primer lloc, queda evidenciat que existeix un llindar de pes a partir del qual la mètrica reflecteix adequadament la jerarquia desitjada entre objectius: primer cal evitar descartar reserves i, només després, minimitzar el desaprofitament. Els resultats amb pesos 1 i 10 mostraven que el planificador seguia preferint descartar la reserva, ja que el desaprofitament de places continuava dominant el cost global. En canvi, amb un pes de 100, aquesta situació s’inverteix i el criteri principal queda satisfet.
-En segon lloc, l’experiment mostra que el planificador és sensible al pes de la mètrica i que petits increments no són suficients quan els valors numèrics implicats en el segon terme (en aquest cas, entre 28 i 88 places desaprofitades) són molt superiors. Per això, només en introduir un pes significativament més elevat s’aconsegueix que el cost d’una reserva descartada sigui percebut com a realment prioritari.
+   ```bash
+   step    0: ASSIGNAR-HABITACIO R1 H2
+   ```
+
+   A diferència dels casos anteriors, ara el planificador decideix assignar la reserva en lloc de descartar-la. A més, no només tria assignar-la, sinó que selecciona l’habitació H2, que és la més petita entre totes les disponibles. Aquesta decisió és coherent amb l’objectiu de minimitzar el desaprofitament de places, ja que assignar una reserva de dues persones a una habitació de capacitat 30 genera un desaprofitament de 28 places, que és el menor possible dins del conjunt d’opcions.
+   Aquest resultat és important per dues raons. En primer lloc, confirma que l’augment del pes fins a 100 és suficient per fer que el cost de descartar la reserva sigui percebut com a molt més alt que el cost d’associar-la a qualsevol habitació, fins i tot aquelles amb una capacitat molt elevada. El planificador, per tant, prioritza clarament mantenir la reserva activa. En segon lloc, la selecció de l’habitació H2 demostra que, un cop superada aquesta barrera, Metric-FF també és capaç d’optimitzar el segon criteri de la mètrica, que és minimitzar el desaprofitament de places.
+
+   Aquest comportament ens permet extreure diverses conclusions. En primer lloc, queda evidenciat que existeix un llindar de pes a partir del qual la mètrica reflecteix adequadament la jerarquia desitjada entre objectius: primer cal evitar descartar reserves i, només després, minimitzar el desaprofitament. Els resultats amb pesos 1 i 10 mostraven que el planificador seguia preferint descartar la reserva, ja que el desaprofitament de places continuava dominant el cost global. En canvi, amb un pes de 100, aquesta situació s’inverteix i el criteri principal queda satisfet.
+   En segon lloc, l’experiment mostra que el planificador és sensible al pes de la mètrica i que petits increments no són suficients quan els valors numèrics implicats en el segon terme (en aquest cas, entre 28 i 88 places desaprofitades) són molt superiors. Per això, només en introduir un pes significativament més elevat s’aconsegueix que el cost d’una reserva descartada sigui percebut com a realment prioritari.
 
 Per tant, podem descartar la hipòtesi nul·la i acceptar la hipòtesi alternativa: el valor del pes té un efecte clar sobre la decisió del planificador. Tanmateix, això planteja una qüestió important: existeix un únic valor de pes que pugui funcionar per a tots els problemes, o, per contra, cada instància requereix un pes ajustat de manera específica per garantir que el planificador prioreze correctament l’assignació de reserves abans de minimitzar el desaprofitament de places?
 
@@ -976,14 +977,17 @@ Si executem el programa un altre cop amb els pesos 1, 10 i 100; observem que en 
 ```bash
 step    0: ASSIGNAR-HABITACIO R1 H1
 ```
+
 Amb això podem arribar a una conclusió clara. Tot i que no podem afirmar que existeix un únic pes òptim per a tots els problemes, els experiments permeten extreure una conclusió pràctica: un pes elevat com 100 sembla suficient per assegurar que el planificador prioritzi sempre l’assignació de reserves abans de minimitzar el desaprofitament en instàncies típiques del domini. En el nostre exemple inicial, aquest pes és clarament suficient per imposar la jerarquia d’objectius i obtenir la solució desitjada.
 
 A més, en escenaris més realistes, amb habitacions de capacitat ajustada, com solen trobar-se en hotels reals, el mateix pes de 100 continua generant solucions correctes, com hem vist en l’experiment amb habitacions més petites. Això indica que un pes de 100 pot funcionar com a referència robusta en molts casos pràctics, tot i que no garanteix un comportament perfecte en instàncies extremes amb habitacions molt grans o reserves molt petites, on podria caldre ajustar-lo.
 
 #### 3.3.2.2 Problema 2: Complexitat temporal
+
 En aquest experiment analitzem el comportament del planificador davant problemes de mida creixent, amb l’objectiu d’estudiar com afecta l’increment de la complexitat del problema al temps d’execució. L’interès principal és determinar fins a quin punt el nombre de reserves, habitacions i dies influeix en el rendiment del planificador i en la seva capacitat per trobar un pla en temps raonable.
 Per tal de dur a terme l’experiment, hem utilitzat els scripts `generador3.py` i `executar_exp3.py`, que permeten generar automàticament un conjunt de problemes de dimensions diverses i executar-los amb el domini corresponent. Tots els resultats s’emmagatzemen en un fitxer en format CSV, que posteriorment s’utilitza per analitzar les dades i extreure conclusions.
 Els problemes generats segueixen el conjunt de configuracions següent:
+
 ```bash
 CONFIGURACIONS = [
     (1, 1, 1),    
@@ -1002,6 +1006,7 @@ CONFIGURACIONS = [
     (30, 30, 10), 
 ]
 ```
+
 On el primer número correspon al número de reserves, el segon al número d'habitacions i el tercer al número de dies.
 A partir d’aquest conjunt de problemes, obtenim els resultats següents:
 
@@ -1012,19 +1017,21 @@ A partir d’aquest conjunt de problemes, obtenim els resultats següents:
   </div>
 </div>
 
-Aquest gràfic mostra el temps mitjà de planificació en funció del nombre de reserves, amb el color representant el nombre d’habitacions, i deixa veure una estructura clarament escalonada. 
-Per valors petits de reserves (1–10) el temps es manté relativament estable, en una franja aproximada de 55–80 ms, fins i tot quan augmenta lleugerament el nombre d’habitacions (colors més clars), cosa que indica que en aquest rang la combinatòria d’assignacions és manejable i l’heurística de Metric‑FF troba plans bons sense explorar gaire l’espai d’estats. 
-A partir d’aquí, cada salt significatiu en el nombre de reserves va acompanyat d’un increment clar del temps: amb 15 reserves el temps ja s’enfila cap als 90–100 ms, amb 20 reserves puja per sobre dels 100 ms i amb 25 reserves arriba prop dels 200 ms. 
-El punt més extrem és a 30 reserves, on hi ha dos casos amb 25 i 30 habitacions (colors verd-clar/groc) que porten el temps de planificació fins als 380–410 ms; en aquestes configuracions, la combinació de moltes reserves, moltes habitacions i l’horitzó temporal fa explotar el nombre de possibles assignacions i solapaments, de manera que el planificador ha d’explorar moltíssimes més alternatives abans de trobar una solució òptima. 
+Aquest gràfic mostra el temps mitjà de planificació en funció del nombre de reserves, amb el color representant el nombre d’habitacions, i deixa veure una estructura clarament escalonada.
+Per valors petits de reserves (1–10) el temps es manté relativament estable, en una franja aproximada de 55–80 ms, fins i tot quan augmenta lleugerament el nombre d’habitacions (colors més clars), cosa que indica que en aquest rang la combinatòria d’assignacions és manejable i l’heurística de Metric‑FF troba plans bons sense explorar gaire l’espai d’estats.
+A partir d’aquí, cada salt significatiu en el nombre de reserves va acompanyat d’un increment clar del temps: amb 15 reserves el temps ja s’enfila cap als 90–100 ms, amb 20 reserves puja per sobre dels 100 ms i amb 25 reserves arriba prop dels 200 ms.
+El punt més extrem és a 30 reserves, on hi ha dos casos amb 25 i 30 habitacions (colors verd-clar/groc) que porten el temps de planificació fins als 380–410 ms; en aquestes configuracions, la combinació de moltes reserves, moltes habitacions i l’horitzó temporal fa explotar el nombre de possibles assignacions i solapaments, de manera que el planificador ha d’explorar moltíssimes més alternatives abans de trobar una solució òptima.
 En termes d’anàlisi, el gràfic evidencia que el nombre de reserves és un paràmetre clau de dificultat i que, quan es combina amb un nombre alt d’habitacions, l’espai de cerca creix de forma fortament no lineal, produint increments de temps de diversos factors en comparació amb les instàncies petites.
 
 #### 3.3.2.2 Problema 3: Playtime
+
 En aquest experiment, un cop analitzats tant el pes com el temps d'execució, plantejarem un problema no trivial pensat per a que el planificador hagi d'utilitzar les mètriques per a arribar a una solució optima. Analitzarem el seu comportament i les repostes que dona per veure si aquesta extensió funciona correctament.
 
 El problema amb el que treballarem serà `experiment3.py`.
 Aquest problema ha estat dissenyat amb cinc reserves i quatre habitacions de capacitats heterogènies, amb solapaments de dies que fan que no sigui possible assignar les reserves de manera arbitrària. Cada reserva té un nombre diferent de persones i ocupa dies que en molts casos coincideixen parcialment amb altres reserves, creant conflictes d’assignació.
 Un cop definit el problema, executarem el planificador Metric-FF amb la mètrica definida. Analitzarem pas a pas les assignacions que fa, quines reserves són descartades, quins desaprofitaments es produeixen i com la mètrica afecta les decisions. D’aquesta manera podrem veure si l’extensió 3 està funcionant correctament i si el planificador és capaç de prioritzar la no descartació de reserves i, alhora, reduir al mínim el desaprofitament de places.
 El planificador Metric-FF ha generat el següent pla:
+
 ```bash
 metric established (normalized to minimize): ((100.00*[RF1](TOTAL-RESERVES-DESCARTADES)1.00*[RF0](TOTAL-PLACES-DESCARTADES)) - () + 0.00)
 
@@ -1057,6 +1064,7 @@ time spent:    0.00 seconds instantiating 5 easy, 12 hard action templates
                0.00 seconds searching, evaluating 192 states, to a max depth of 0
                0.00 seconds total time
 ```
+
 Analitzem si aquesta solució pot considerar-se bona dins dels criteris establerts:
 
 1. **Compliment de restriccions:** Totes les reserves assignades utilitzen habitacions amb suficient capacitat i es minimitzen les places descartades correctament. Per exemple, la reserva r5 (5 persones) s’assigna a l’habitació h3 (6 places), que és l’única disponible que pot allotjar-la. La reserva r2 (2 persones) s'assigna a l'habitació h2 (2 persones). i així amb totes les reserves assignades: totes van cap a l'habitació mes petita disponible. Ademés, no hi ha dues reserves assignades a la mateixa habitació en dies coincidints, respectant perfectament la restricció de solapament.
@@ -1066,6 +1074,7 @@ Analitzem si aquesta solució pot considerar-se bona dins dels criteris establer
 3. **Raonament sobre la qualitat:** Observem que la solució prioritza correctament els criteris definits a la mètrica: evita descartar reserves sempre que sigui possible i redueix el desaprofitament de places dins de les opcions factibles.
 
 En conclusió, podem considerar la solució bona i coherent amb els objectius de l'extensió 3:
+
 - Processa la majoria de reserves.
 - Respecta totes les restriccions de capacitat i solapament.
 - Minimitza el desaprofitament dins del possible.
@@ -1081,9 +1090,9 @@ La idea central d'aquest enfocament és transformar les prioritats en **longitud
 
 El mecanisme consisteix a dissenyar la topologia del domini de manera que les opcions menys desitjables requereixin executar **més passos**:
 
-1.  **Prioritat 1: Reutilitzar habitacions (Cost: 1 pas).** Ho facilitem al màxim. Dissenyem una acció directa que es resol en un sol pas. En ser el camí més curt, el planificador el seleccionarà sempre que sigui viable.
-2.  **Prioritat 2: Obrir habitacions (Cost: 2 passos).** Ho fem més costós estructuralment. Forcem el planificador a executar una seqüència de dues accions (obrir i després assignar) per aconseguir-ho. Com que és un procés més llarg que l'anterior, el sistema només optarà per aquest camí si no té cap alternativa de reutilització.
-3.  **Prioritat 3: Descartar reserves (Cost: >N passos).** Ho fem prohibitiu en termes de longitud. Creem una cadena artificial de molts passos seqüencials. El planificador identificarà aquesta opció com un camí extremadament ineficient i l'evitarà sistemàticament, excepte en casos on sigui impossible assignar la reserva.
+1. **Prioritat 1: Reutilitzar habitacions (Cost: 1 pas).** Ho facilitem al màxim. Dissenyem una acció directa que es resol en un sol pas. En ser el camí més curt, el planificador el seleccionarà sempre que sigui viable.
+2. **Prioritat 2: Obrir habitacions (Cost: 2 passos).** Ho fem més costós estructuralment. Forcem el planificador a executar una seqüència de dues accions (obrir i després assignar) per aconseguir-ho. Com que és un procés més llarg que l'anterior, el sistema només optarà per aquest camí si no té cap alternativa de reutilització.
+3. **Prioritat 3: Descartar reserves (Cost: $>N$ passos).** Ho fem prohibitiu en termes de longitud. Creem una cadena artificial de molts passos seqüencials. El planificador identificarà aquesta opció com un camí extremadament ineficient i l'evitarà sistemàticament, excepte en casos on sigui impossible assignar la reserva.
 
 D'aquesta manera, convertim l'estructura del problema en la pròpia funció de cost. No cal indicar explícitament al sistema què és important mitjançant fórmules, definint les accions com hem fet, ens farà que el planificador vaigi de manera natural cap a la solució més efcient.
 
@@ -1091,18 +1100,20 @@ D'aquesta manera, convertim l'estructura del problema en la pròpia funció de c
 
 Seguint aquesta filosofia, el nou domini `hotel-extensio4-logic` elimina totalment les funcions numèriques complexes i la secció `:metric`. Tota l'optimització recau en com hem dissenyat les accions perquè les opcions preferibles siguin més ràpides d'executar.
 
-1.  **Simulació de la Lògica Numèrica**
-    Com que prescindim dels `fluents` per fer comparacions matemàtiques (tipus `capacitat >= persones`), implementem una solució declarativa:
-    *   Definim un tipus `nombre` i objectes per a cada valor (`n1, n2, n3, n4`).
-    *   Utilitzem un predicat estàtic `(menor-o-igual ?n1 ?n2)` que s'instancia a l'estat inicial com una taula de veritat completa, codificant totes les relacions `i <= j`.
-    D'aquesta manera, verifiquem si una reserva cap en una habitació mitjançant una simple consulta lògica a l'estat, sense necessitat d'una avaluació numèrica en temps d'execució.
+1. **Simulació de la Lògica Numèrica**
+   Com que prescindim dels `fluents` per fer comparacions matemàtiques (tipus `capacitat >= persones`), implementem una solució declarativa:
 
-2.  **Jerarquia de Costos a través de la Longitud del Pla**
-    Aquí definim l'estructura de costos jugant amb el nombre d'accions necessàries per a cada operació:
+   - Definim un tipus `nombre` i objectes per a cada valor (`n1, n2, n3, n4`).
+   - Utilitzem un predicat estàtic `(menor-o-igual ?n1 ?n2)` que s'instancia a l'estat inicial com una taula de veritat completa, codificant totes les relacions `i <= j`.
+   D'aquesta manera, verifiquem si una reserva cap en una habitació mitjançant una simple consulta lògica a l'estat, sense necessitat d'una avaluació numèrica en temps d'execució.
 
-    *   **Cost Mínim (1 pas): Reutilitzar una habitació**
+2. **Jerarquia de Costos a través de la Longitud del Pla**
+   Aquí definim l'estructura de costos jugant amb el nombre d'accions necessàries per a cada operació:
+
+   - **Cost Mínim (1 pas): Reutilitzar una habitació**
         Si una habitació ja té l'estat `(usada ?h)`, assignar-hi una nova reserva és l'opció més directa. L'acció `assignar-habitacio-usada` modela això com un sol pas atòmic.
-        ```
+
+        ```pddl
         (:action assignar-habitacio-usada
             :parameters (?r - reserva ?h - habitacio ?cap - nombre ?pers - nombre)
             :precondition (and
@@ -1121,12 +1132,14 @@ Seguint aquesta filosofia, el nou domini `hotel-extensio4-logic` elimina totalme
         )
         ```
 
-    *   **Cost Mitjà (2 passos): Obrir una habitació nova**
-        Quan no hi ha disponibilitat a les habitacions obertes, el sistema ha de assumir el cost d'obrir-ne una de nova. Modelem això com una cadena obligatòria de dues accions, fent que el pla total sigui més llarg i menys atractiu per a l'heurística:
-        1.  `obrir-habitacio`: Marca l'habitació com a `usada` i activa un estat transitori `(oberta ?h)`.
-        2.  `assignar-habitacio-nova`: Assigna la reserva consumint l'estat `(oberta ?h)`.
+   - **Cost Mitjà (2 passos): Obrir una habitació nova**
 
-    *   **Cost Màxim (>N passos): Descartar una reserva**
+        Quan no hi ha disponibilitat a les habitacions obertes, el sistema ha de assumir el cost d'obrir-ne una de nova. Modelem això com una cadena obligatòria de dues accions, fent que el pla total sigui més llarg i menys atractiu per a l'heurística:
+  
+       1. **`obrir-habitacio`**: Marca l'habitació com a `usada` i activa un estat transitori `(oberta ?h)`.
+       2. **`assignar-habitacio-nova`**: Assigna la reserva consumint l'estat `(oberta ?h)`.
+
+   - **Cost Màxim ($>N$ passos): Descartar una reserva**
         Per garantir que descartar sigui sempre l'últim recurs, dissenyem aquesta acció com una cadena artificialment llarga de passos seqüencials (`descartar-pas-1`, `descartar-pas-2`...). El planificador percep aquesta opció com un camí molt ineficient i l'evita sempre que existeixi qualsevol possibilitat d'assignació (que només costa 1 o 2 passos).
 
 ### 3.4.2 Problemes
@@ -1146,18 +1159,14 @@ Concretament, esperem que el nombre d'habitacions utilitzades es mantingui **bai
 **Disseny de l'Experiment:**
 Per aïllar aquesta variable, hem dissenyat un escenari de prova controlat amb les següents característiques:
 
-*   **Entrada Constant:** Es manté fix el volum de feina en **5 reserves** distribuïdes aleatòriament en un calendari de **30 dies**. Aquest volum és prou petit per permetre una concentració teòrica alta, però amb prou aleatorietat per generar conflictes puntuals.
-*   **Variable Independent:** Modifiquem el nombre d'**habitacions disponibles** al problema inicial, testejant els nivells: 5, 10, 15, 20, 30, 40 i 50 habitacions.
-*   **Mètriques:**
-    *   *Habitacions Obertes:* Comptem quantes vegades s'executa l'acció `obrir-habitacio` al pla final.
-    *   *Temps d'Execució:* Mesurem el temps de CPU per avaluar l'impacte de l'espai de cerca.
-*   **Protocol:** Per garantir la robustesa estadística i suavitzar els efectes de l'aleatorietat en les dates de les reserves, executem **5 rèpliques** per a cada nivell d'habitacions (total 35 execucions) i calculem la mitjana dels resultats.
+- **Entrada Constant:** Es manté fix el volum de feina en **5 reserves** distribuïdes aleatòriament en un calendari de **30 dies**. Aquest volum és prou petit per permetre una concentració teòrica alta, però amb prou aleatorietat per generar conflictes puntuals.
+- **Variable Independent:** Modifiquem el nombre d'**habitacions disponibles** al problema inicial, testejant els nivells: 5, 10, 15, 20, 30, 40 i 50 habitacions.
+- **Mètriques:**
+  - *Habitacions Obertes:* Comptem quantes vegades s'executa l'acció `obrir-habitacio` al pla final.
+  - *Temps d'Execució:* Mesurem el temps de CPU per avaluar l'impacte de l'espai de cerca.
+- **Protocol:** Per garantir la robustesa estadística i suavitzar els efectes de l'aleatorietat en les dates de les reserves, executem **5 rèpliques** per a cada nivell d'habitacions (total 35 execucions) i calculem la mitjana dels resultats.
 
-L'execució d'aquest experiment s'ha automatitzat mitjançant un script Python (`executar_exp4.1.py`) que genera dinàmicament els problemes PDDL, invoca el planificador i analitza els fitxers de sortida per extreure les mètriques clau.
-
-**Anàlisi de Resultats**
-
-El gràfic següent mostra l'evolució de la mitjana d'habitacions utilitzades (barres blaves) i el temps de càlcul (línia vermella) a mesura que augmenta la disponibilitat d'habitacions.
+L'execució d'aquest experiment s'ha automatitzat mitjançant un script Python (`executar_exp4.1.py`) que genera dinàmicament els problemes PDDL, invoca el planificador i analitza els fitxers de sortida per extreure les mètriques clau. El gràfic següent mostra l'evolució de la mitjana d'habitacions utilitzades (barres blaves) i el temps de càlcul (línia vermella) a mesura que augmenta la disponibilitat d'habitacions.
 
 <div class="image-row">
   <div class="image-column">
@@ -1168,17 +1177,17 @@ El gràfic següent mostra l'evolució de la mitjana d'habitacions utilitzades (
 
 Les dades obtingudes permeten validar la nostra hipòtesi de manera robusta:
 
-1.  **Estabilitat en l'Ús de Recursos (Barres Blaves):**
+1. **Estabilitat en l'Ús de Recursos (Barres Blaves):**
     Com s'observa al gràfic, el nombre d'habitacions obertes es manté notablement constant, oscil·lant entre **1.8 i 3.2**, malgrat que l'oferta d'habitacions (Eix X) es multiplica per deu.
-    *   Amb **5 habitacions disponibles**, el sistema en fa servir una mitjana de **1.8**.
-    *   Amb **50 habitacions disponibles**, la mitjana és de **3.0**.
-    
+    - Amb **5 habitacions disponibles**, el sistema en fa servir una mitjana de **1.8**.
+    - Amb **50 habitacions disponibles**, la mitjana és de **3.0**.
+  
     Aquesta estabilitat demostra que el planificador **ignora l'abundància**. En lloc de dispersar les 5 reserves en 5 habitacions (l'estratègia fàcil amb 50 disponibles), el sistema s'esforça a compactar-les en 2 o 3 habitacions. Això prova que el "cost estructural" de 2 passos actua com un fre efectiu contra l'ús innecessari de recursos.
 
-2.  **L'Òptim Condicionat:**
+2. **L'Òptim Condicionat:**
     Tot i que l'ideal teòric seria utilitzar una única habitació, els valors entre 2 i 3 s'expliquen pels **conflictes temporals**. En un calendari aleatori, és estadísticament freqüent que dues reserves coincideixin en dates, fent físicament impossible la seva ubicació a la mateixa habitació. Els resultats indiquen que el sistema troba l'**òptim condicionat**: obre només les habitacions extra imprescindibles per resoldre els solapaments d'horari.
 
-3.  **Escalabilitat del Temps (Línia Vermella):**
+3. **Escalabilitat del Temps (Línia Vermella):**
     El temps d'execució mostra un creixement lineal lògic (de ~120ms a ~670ms) degut a l'expansió de l'espai de cerca (gestionar 50 objectes és més costós que gestionar-ne 5). No obstant això, es manté sempre en un rang inferior a un segon, confirmant que l'estratègia és computacionalment eficient i no sobrecarrega el procés de planificació.
 
 **Conclusió:**
