@@ -6,10 +6,9 @@ import sys
 import matplotlib.pyplot as plt
 
 # --- CONFIGURACIÓ ---
-GENERADOR_COMBINAT = r"C:\Users\polri\Desktop\Uni\2n\1r Quatrimestre\ABIA\ABIA-practica-2\extensions\ext4\generador_4.py"
-DOMAIN_FILE = r"C:\Users\polri\Desktop\Uni\2n\1r Quatrimestre\ABIA\ABIA-practica-2\extensions\ext4\dom4.pddl"
-FF_EXECUTABLE = r"C:\Users\polri\Desktop\Uni\2n\1r Quatrimestre\ABIA\ABIA-practica-2\programa\metricff.exe"
-
+GENERADOR_COMBINAT = "./extensions/ext4/generador_4.py"
+DOMAIN_FILE = "./extensions/ext4/dom4.pddl"
+FF_EXECUTABLE = "./programa/metricff.exe"
 OUTPUT_CSV = "resultats/ext4/resultats_comparativa_extended.csv"
 TEMP_DIR = "./extensions/ext4/temp_exp3_extended"
 GRAFIC_FILE = "resultats/ext4/comparativa_extended.png"

@@ -302,8 +302,8 @@ font-family: Helvetica, Arial, sans-serif;
 - [3.4 Extensió 4](#34-extensió-4)
   - [3.4.1 Domini](#341-domini)
   - [3.4.2 Problemes](#342-problemes)
-  - [3.4.2.1 Experiment 1: El dilema de la concentració](#3421-experiment-1-el-dilema-de-la-concentració)
-    - [3.4.2.2 Problema 2](#3422-problema-2)
+    - [3.4.2.1 Problema 1: El dilema de la concentració](#3421-problema-1-el-dilema-de-la-concentració)
+    - [3.4.2.2 Problema 2: Comparativa d'Estratègies (Greedy vs. Òptim)](#3422-problema-2-comparativa-destratègies-greedy-vs-òptim)
 - [4. Conclusions](#4-conclusions)
 
 <div class="page-break"></div>
@@ -334,6 +334,8 @@ El sistema ha de ser capaç d’assignar les diferents peticions de reserva a le
    Un cop definits aquests elements, s’ha creat el domini PDDL, on s’han especificat els tipus d’objectes, els predicats necessaris per representar l’estat del sistema i les funcions numèriques per poder expressar els criteris d’optimització. A continuació, s’han definit les accions que permeten dur a terme l’assignació de reserves a les habitacions, tenint en compte tant les restriccions de capacitat com les de no solapament.
    Posteriorment, s’han creat diferents fitxers de problema, fets a mà o per un generador, per provar el funcionament del sistema en el nivell bàsic i en cadascuna de les extensions. Per a l’obtenció de les solucions s’ha utilitzat el planificador metric-ff, que permet treballar amb funcions numèriques i criteris d’optimització.
    Finalment, s’han analitzat els plans generats pel planificador per comprovar si compleixen les restriccions establertes i si optimitzen correctament els criteris definits en cada extensió. A partir d’aquesta anàlisi, s’han extret les conclusions sobre el funcionament i l’eficàcia del model desenvolupat.
+
+   També hem fet ús de GitHub per al control de versions i la documentació del projecte, facilitant així la col·laboració i el seguiment dels canvis realitzats al llarg del desenvolupament del treball. Es pot consultar el repositori complet a [aquest enllaç](https://github.com/carlospalazon/ABIA-practica-2).
 
 <div class="page-break"></div>
 
@@ -1098,7 +1100,7 @@ D'aquesta manera, convertim l'estructura del problema en la pròpia funció de c
 
 ### 3.4.1 Domini
 
-Seguint aquesta filosofia, el nou domini `hotel-extensio4-logic` elimina totalment les funcions numèriques complexes i la secció `:metric`. Tota l'optimització recau en com hem dissenyat les accions perquè les opcions preferibles siguin més ràpides d'executar.
+Seguint aquesta filosofia, el nou domini [`hotel-extensio4-logic`](https://github.com/carlospalazon/ABIA-practica-2/blob/4d74a29c6cc6e9fc108984708b046e9b65cdb6a0/extensions/ext4/dom4.pddl) elimina totalment les funcions numèriques complexes i la secció `:metric`. Tota l'optimització recau en com hem dissenyat les accions perquè les opcions preferibles siguin més ràpides d'executar.
 
 1. **Simulació de la Lògica Numèrica**
    Com que prescindim dels `fluents` per fer comparacions matemàtiques (tipus `capacitat >= persones`), implementem una solució declarativa:
@@ -1146,9 +1148,10 @@ Seguint aquesta filosofia, el nou domini `hotel-extensio4-logic` elimina totalme
 
 La validació d'un sistema basat en costos estructurals requereix un enfocament diferent del de les mètriques numèriques. No busquem simplement "reduir un número", sinó verificar que el planificador tria la branca correcta de l'arbre de cerca quan s'enfronta a decisions conflictives.
 
-Per aquest motiu, hem seleccionat dos experiments dissenyats per posar a prova la jerarquia d'objectius. El primer experiment verifica el nou requisit (minimitzar habitacions vs. dispersar reserves), mentre que el segon actua com a prova de regressió per assegurar que no hem trencat la funcionalitat bàsica (assignar reserves vs. descartar-les). Addicionalment, utilitzem el script `generador_4.py` [file:5] per validar l'escalabilitat del model.
+Per aquest motiu, hem seleccionat dos experiments dissenyats per posar a prova la jerarquia d'objectius. El primer experiment verifica el nou requisit (minimitzar habitacions vs. dispersar reserves), mentre que el segon actua com a prova de regressió per assegurar que no hem trencat la funcionalitat bàsica (assignar reserves vs. descartar-les). Addicionalment, utilitzem el script [`generador_4.py`](https://github.com/carlospalazon/ABIA-practica-2/blob/4d74a29c6cc6e9fc108984708b046e9b65cdb6a0/extensions/ext4/generador_4.py) per validar l'escalabilitat del model.
+Aquest generador crea problemes amb paràmetres ajustables, de l'estil que es pot consultar [aquí](https://github.com/carlospalazon/ABIA-practica-2/blob/8528b0a4fdbc699c64265cc06ef6c38fee92139e/extensions/ext4/temp_exp1/p_h10_rep0.pddl)
 
-### 3.4.2.1 Experiment 1: El dilema de la concentració
+#### 3.4.2.1 Problema 1: El dilema de la concentració
 
 Aquest experiment constitueix la prova fonamental per validar l'efectivitat de la minimització d'habitacions mitjançant costos estructurals. El seu propòsit és verificar si el planificador és capaç d'ignorar l'abundància de recursos disponibles i "auto-limitar-se" per ser eficient, guiat únicament per la longitud del pla.
 
@@ -1166,7 +1169,7 @@ Per aïllar aquesta variable, hem dissenyat un escenari de prova controlat amb l
   - *Temps d'Execució:* Mesurem el temps de CPU per avaluar l'impacte de l'espai de cerca.
 - **Protocol:** Per garantir la robustesa estadística i suavitzar els efectes de l'aleatorietat en les dates de les reserves, executem **5 rèpliques** per a cada nivell d'habitacions (total 35 execucions) i calculem la mitjana dels resultats.
 
-L'execució d'aquest experiment s'ha automatitzat mitjançant un script Python (`executar_exp4.1.py`) que genera dinàmicament els problemes PDDL, invoca el planificador i analitza els fitxers de sortida per extreure les mètriques clau. El gràfic següent mostra l'evolució de la mitjana d'habitacions utilitzades (barres blaves) i el temps de càlcul (línia vermella) a mesura que augmenta la disponibilitat d'habitacions.
+L'execució d'aquest experiment s'ha automatitzat mitjançant un script Python [`executar_exp4.1.py`](https://github.com/carlospalazon/ABIA-practica-2/blob/8528b0a4fdbc699c64265cc06ef6c38fee92139e/executadors/executar_exp4.1.py) que genera dinàmicament els problemes PDDL, invoca el planificador i analitza els fitxers de sortida per extreure les mètriques clau. El gràfic següent mostra l'evolució de la mitjana d'habitacions utilitzades (barres blaves) i el temps de càlcul (línia vermella) a mesura que augmenta la disponibilitat d'habitacions.
 
 <div class="image-row">
   <div class="image-column">
@@ -1190,34 +1193,25 @@ Les dades obtingudes permeten validar la nostra hipòtesi de manera robusta:
 3. **Escalabilitat del Temps (Línia Vermella):**
     El temps d'execució mostra un creixement lineal lògic (de ~120ms a ~670ms) degut a l'expansió de l'espai de cerca (gestionar 50 objectes és més costós que gestionar-ne 5). No obstant això, es manté sempre en un rang inferior a un segon, confirmant que l'estratègia és computacionalment eficient i no sobrecarrega el procés de planificació.
 
-**Conclusió:**
 Hem validat que **dissenyar bé les accions del domini funciona com una guia d'optimització eficaç**. El sistema ha après a prioritzar la reutilització (camí curt) davant de l'obertura (camí llarg), aconseguint una eficiència de concentració superior al 50% fins i tot en escenaris d'extrema abundància. Això demostra que no és necessari recórrer a mètriques numèriques complexes per assolir aquest objectiu de minimització.
 
-#### 3.4.2.2 Problema 2
-
-
-### 3.4.2.2 Experiment 2: Comparativa d'Estratègies (Greedy vs. Òptim)
+#### 3.4.2.2 Problema 2: Comparativa d'Estratègies (Greedy vs. Òptim)
 
 Després d'haver comprovat en l'experiment anterior que el sistema és capaç de concentrar recursos, aquest segon experiment es planteja com una prova de rendiment a gran escala. L'objectiu és mesurar quant guanyem realment amb la nostra estratègia de "costos estructurals" en comparació amb un enfocament tradicional més simple, conegut com a *Greedy*. Volem demostrar que la nostra optimització no és només una petita millora, sinó que marca una gran diferència quan tenim molta feina acumulada.
-
-**Justificació i Hipòtesi**
 
 En planificació automàtica, l'estratègia *Greedy* (o avariciosa) és el punt de referència bàsic. Aquesta estratègia funciona per "força bruta": per a cada nova reserva que arriba, utilitza una habitació nova per evitar problemes, sense mirar si podria aprofitar les que ja té obertes. Això té un cost fix i previsible de 2 passos per reserva.
 
 La nostra hipòtesi és que el disseny del domini `hotel-extensio4-logic`, on hem fet que obrir habitacions costi el doble (2 passos) que reutilitzar-les (1 pas), aconseguirà un estalvi cada cop més gran. Aquest experiment serveix per validar que el nostre planificador és millor que l'estratègia Greedy perquè és capaç de mirar més enllà del pas immediat: mentre el Greedy només pren la decisió fàcil a curt termini, el nostre sistema minimitza el cost global del pla i prefereix buscar oportunitats de reutilització abans d’obrir noves habitacions.
 
-**Disseny Experimental**
-
 Per provar això en un entorn realista, hem preparat un escenari amb:
-* 40 habitacions disponibles i un calendari de 30 dies.
-* Nombre de reserves creixent: 2, 5, 10, 15, 20, 25 i 30.
-* Mètrica: nombre total de passos del pla (longitud del pla).
-  * Model Greedy (teòric): 2 passos per reserva (sempre 2·N).
-  * Model optimitzat (experimental): mitjana de 5 execucions de Metric-FF per a cada nombre de reserves.
+
+- 40 habitacions disponibles i un calendari de 30 dies.
+- Nombre de reserves creixent: 2, 5, 10, 15, 20, 25 i 30.
+- Mètrica: nombre total de passos del pla (longitud del pla).
+  - Model Greedy (teòric): 2 passos per reserva (sempre 2·N).
+  - Model optimitzat (experimental): mitjana de 5 execucions de Metric-FF per a cada nombre de reserves.
 
 Els valors observats per al nostre planificador oscil·len, per exemple, entre 3–4 passos quan hi ha 2 reserves i entre 38–40 passos quan hi ha 30 reserves, mentre que la línia Greedy creix rígida de 4 a 60 passos per als mateixos casos.
-
-**Anàlisi de Resultats**
 
 <div class="image-row">
   <div class="image-column">
@@ -1238,9 +1232,9 @@ Finalment, en l’escenari més exigent amb 30 reserves, el contrast és màxim.
 
 Dit d’una altra manera, l’estalvi no és només una petita correcció: a mesura que augmenta el nombre de reserves, el pendent de la nostra corba és clarament més suau que el de la recta Greedy. Això vol dir que el "cost marginal" d’afegir una reserva extra acostuma a ser d’1 pas (reutilització) per al nostre sistema, mentre que per al Greedy continua sent sempre de 2. Això explica que la distància entre les dues línies creixi de forma gairebé lineal a mesura que augmentem la demanda.
 
-**Conclusió**
-
 Aquest experiment confirma de manera clara la hipòtesi que el nostre planificador és millor que una estratègia Greedy i, sobretot, explica el motiu d’aquesta ventatja. La clau és que el sistema no es limita a resoldre cada reserva de forma local, sinó que aprofita la penalització d’obrir habitacions per buscar patrons globals de reutilització. Les dades mostren que, en escenaris de molta càrrega (20, 25 o 30 reserves), això es tradueix en estalvis molt significatius tant en passos com en nombre d’habitacions necessàries. Per tant, l’Extensió 4 no només millora el comportament base, sinó que ho fa de manera cada cop més notable quan el problema creix en mida i complexitat.
+
+<div class="page-break"></div>
 
 ## 4. Conclusions
 
