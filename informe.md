@@ -1171,7 +1171,7 @@ L'execució d'aquest experiment s'ha automatitzat mitjançant un script Python (
 <div class="image-row">
   <div class="image-column">
     <img src="./figures/ext4/1.png" alt="Gràfic de temps d'execució en l'extensió 2 experiment 1">
-    <div class="caption">Figura 12: Relació entre habitacions obertes i temps d'execució segons la disponibilitat del domini.</div>
+    <div class="caption">Figura 13: Relació entre habitacions obertes i temps d'execució segons la disponibilitat del domini.</div>
   </div>
 </div>
 
@@ -1196,3 +1196,9 @@ Hem validat que **dissenyar bé les accions del domini funciona com una guia d'o
 #### 3.4.2.2 Problema 2
 
 ## 4. Conclusions
+
+Aquest projecte demostra que la planificació automàtica és una eina molt útil per gestionar hotels si ens centrem a treure el màxim profit dels recursos en lloc de buscar solucions perfectes impossibles. El canvi clau ha estat fer que el sistema sigui flexible, ja que la versió inicial fallava quan hi havia massa feina, però la versió final és capaç de descartar les reserves impossibles per salvar la resta del calendari i així no bloquejar-se mai, fins i tot quan molta gent vol les mateixes dates.
+
+Hem comprovat que el programa actua amb intel·ligència, ja que sap prioritzar i encaixar diverses reserves curtes tipus Tetris en lloc d'una de llarga si això permet allotjar més gent total. A més, intenta complir els gustos dels clients sobre les habitacions sempre que pot, però sap sacrificar aquests detalls si és necessari per assegurar que l'habitació quedi reservada i no es perdi la venda.
+
+Pel que fa a la velocitat, hem vist que el sistema és molt ràpid resolent problemes complicats de dates, però es torna lent si l'hotel és massa gran amb moltes habitacions, la qual cosa ens indica que té un límit de mida. Finalment, l'ús de números ha estat un èxit perquè el sistema ha après a no malgastar espai, assignant grups petits a habitacions petites i guardant les grans per a qui les necessita de debò.

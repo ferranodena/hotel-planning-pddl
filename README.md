@@ -4,6 +4,15 @@ Aquest projecte és la implementació d'un planificador basat en PDDL per a la g
 
 ## 🧠 Objectius
 
+L’objectiu principal d’aquest treball és desenvolupar un sistema de planificació capaç d’assignar correctament les reserves d’un hotel a les diferents habitacions utilitzant el llenguatge PDDL i el planificador metric-ff. Aquesta assignació ha de complir les restriccions bàsiques del problema, com ara la capacitat mínima de les habitacions i l’absència de solapaments temporals entre reserves dins d’una mateixa habitació.
+
+A més d’aquest objectiu general, també es volen assolir els següents objectius específics:
+
+- Modelar correctament el domini del problema en PDDL, definint predicats, funcions numèriques i accions.
+- Implementar el nivell bàsic del problema assegurant que totes les reserves s’assignen correctament o, en cas contrari, no se n’assigna cap.
+- Desenvolupar les diferents extensions proposades, introduint criteris d’optimització com la maximització del nombre de reserves assignades, la satisfacció de les preferències d’orientació, la minimització del desaprofitament de places i la reducció del nombre d’habitacions utilitzades.
+- Analitzar els resultats obtinguts en cada extensió i comparar el comportament del sistema segons els diferents criteris d’optimització.
+
 ---
 
 ## 🏨 Descripció del problema
@@ -30,6 +39,7 @@ La tasca del planificador és trobar una assignació vàlida i eficient de reser
   - `ext2` - Conté domini, problemes i generador per a l'extensió 2.
   - `ext3` - Conté domini, problemes i generador per a l'extensió 3.
   - `ext4` - Conté domini, problemes i generador per a l'extensió 4.
+- `executadors.py/` — Scripts per executar alguns experiments amb diferents configuracions.
 - `figures/` — Gràfics i visualitzacions dels resultats.
 - `programa/` — Codi font del planificador
 - `resultats/` — Resultats dels experiments i dades recollides.

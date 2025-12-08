@@ -9,9 +9,9 @@ import sys
 # =============================================================================
 
 # Rutes absolutes o relatives (assegura't que són correctes)
-GENERADOR_COMBINAT = r"C:\Users\polri\Desktop\Uni\2n\1r Quatrimestre\ABIA\ABIA-practica-2\extensions\ext4\generador_4.py"
-DOMAIN_FILE = r"C:\Users\polri\Desktop\Uni\2n\1r Quatrimestre\ABIA\ABIA-practica-2\extensions\ext4\dom4.pddl"
-FF_EXECUTABLE = r"C:\Users\polri\Desktop\Uni\2n\1r Quatrimestre\ABIA\ABIA-practica-2\programa\metricff.exe"            # El teu planificador
+GENERADOR_COMBINAT = "./extensions/ext4/generador_4.py"
+DOMAIN_FILE = "./extensions/ext4/dom4.pddl"
+FF_EXECUTABLE = "./programa/metricff.exe"            # El teu planificador
 OUTPUT_CSV = "resultats/ext4/resultats_concentracio.csv"
 TEMP_DIR = "./extensions/ext4/temp_exp1"
 

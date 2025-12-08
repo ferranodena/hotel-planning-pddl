@@ -21,9 +21,9 @@ import re
 # =============================================================================
 # CONFIGURACIÓ GLOBAL
 # =============================================================================
-GENERADOR_EXT3   = r"C:\Users\Usuario\Documents\ABIA\ABIA-practica-2\extensions\ext3\generador3.py"   # <-- adapta al teu camí real
-DOMAIN_FILE      = r"C:\Users\Usuario\Documents\ABIA\ABIA-practica-2\extensions\ext3\dom3.pddl"       # domini extensió 3
-FF_EXECUTABLE    = r"C:\Users\Usuario\Documents\ABIA\ABIA-practica-2\programa\metricff.exe"
+GENERADOR_EXT3   = "./extensions/ext3/generador3.py"   # <-- adapta al teu camí real
+DOMAIN_FILE      = "./extensions/ext3/dom3.pddl"       # domini extensió 3
+FF_EXECUTABLE    = "./programa/metricff.exe"
 OUTPUT_CSV       = "resultats/ext3/resultats_ext3.csv"
 TEMP_DIR         = "./extensions/ext3/temp_exp3"
 
