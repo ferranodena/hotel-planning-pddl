@@ -1,67 +1,37 @@
-# 🔍 Pràctica de Planificació — ABIA (UPC 2025/2026)
+# 🏨 Hotel Booking & Resource Planning (PDDL)
 
-Aquest projecte és la implementació d'un planificador basat en PDDL per a la gestió d'un hotel, desenvolupat com a part de la pràctica de l'assignatura d'ABIA a la UPC durant el curs 2025/2026.
+This repository contains the automated planning system developed for the **Artificial Intelligence (ABIA)** laboratory at **UPC** (Academic Year 2025/26). The project focuses on solving complex resource allocation and scheduling problems within a hotel management context using PDDL.
 
-## 🧠 Objectius
+### 🧠 Project Overview
 
-L’objectiu principal d’aquest treball és desenvolupar un sistema de planificació capaç d’assignar correctament les reserves d’un hotel a les diferents habitacions utilitzant el llenguatge PDDL i el planificador metric-ff. Aquesta assignació ha de complir les restriccions bàsiques del problema, com ara la capacitat mínima de les habitacions i l’absència de solapaments temporals entre reserves dins d’una mateixa habitació.
+The core objective is to design a planning system capable of managing hotel reservations over a 30-day period. The system assigns guest bookings to rooms while strictly adhering to capacity constraints and preventing temporal overlaps, ensuring a conflict-free schedule.
 
-A més d’aquest objectiu general, també es volen assolir els següents objectius específics:
+### 🚀 Optimization Features
 
-- Modelar correctament el domini del problema en PDDL, definint predicats, funcions numèriques i accions.
-- Implementar el nivell bàsic del problema assegurant que totes les reserves s’assignen correctament o, en cas contrari, no se n’assigna cap.
-- Desenvolupar les diferents extensions proposades, introduint criteris d’optimització com la maximització del nombre de reserves assignades, la satisfacció de les preferències d’orientació, la minimització del desaprofitament de places i la reducció del nombre d’habitacions utilitzades.
-- Analitzar els resultats obtinguts en cada extensió i comparar el comportament del sistema segons els diferents criteris d’optimització.
+Beyond basic assignment, the system implements several optimization levels (Extensions) to improve operational efficiency:
+- **Booking Maximization:** Prioritizing the highest number of successful assignments.
+- **Preference Satisfaction:** Matching guests with their preferred room orientation.
+- **Waste Minimization:** Reducing the gap between room capacity and guest group size.
+- **Resource Efficiency:** Minimizing the total number of rooms used to reduce operational costs.
 
----
+### 🛠 Tech Stack & Tools
 
-## 🏨 Descripció del problema
+- **Language:** PDDL (Planning Domain Definition Language).
+- **Planner:** `metric-ff` (Fast-Forward heuristic-based planner).
+- **Scripts:** Python for problem generation and experimental data collection.
 
-Una central de reserves d’un hotel necessita un sistema capaç d’assignar les peticions de reserva que es reben a les habitacions disponibles, seguint diversos criteris i restriccions. Per simplificar el context, considerem que totes les reserves corresponen a un únic mes de 30 dies.
-Cada habitació està descrita pel seu identificador i la seva capacitat, que pot allotjar entre 1 i 4 persones.
-Cada reserva inclou un identificador, el nombre de persones (entre 1 i 4) i els dies d’inici i final de l’estada (entre 1 i 30).
-La tasca del planificador és trobar una assignació vàlida i eficient de reserves a habitacions, complint les restriccions i optimitzant els criteris definits.
+### 🧱 Project Structure
 
----
+- `basic/`: Foundation PDDL domain and problem files.
+- `extensions/`: Advanced versions (Ext 1-4) featuring numeric fluents and optimization metrics.
+- `figures/`: Visualizations of the performance analysis and optimization results.
+- `INFORME.pdf`: Detailed technical report with experimental conclusions.
 
-## 🧱 Estructura del projecte
+### 💻 Usage
 
-- `README.md` — Resum del projecte i instruccions d’ús.
-- `INFORME.md` — Arxiu de generació de l'informe
-- `INFORME.pdf` — Informe final amb resultats i conclusions.
-- `documentacio/` — Documents de referència i explicacions addicionals. Conté l’enunciat oficial i la descripció de la implementació de l’estat.
-- `basic/` — Implementació bàsica del planificador.
-  - `domini_basic.pddl` — Domini PDDL bàsic.
-  - `basic.pddl`
-  - `generador_basic.py` — Generador de problemes bàsics.
-- `extensions/`
-  - `ext1` - Conté domini, problemes i generador per a l'extensió 1.
-  - `ext2` - Conté domini, problemes i generador per a l'extensió 2.
-  - `ext3` - Conté domini, problemes i generador per a l'extensió 3.
-  - `ext4` - Conté domini, problemes i generador per a l'extensió 4.
-- `executadors.py/` — Scripts per executar alguns experiments amb diferents configuracions.
-- `figures/` — Gràfics i visualitzacions dels resultats.
-- `programa/` — Codi font del planificador
-- `resultats/` — Resultats dels experiments i dades recollides.
-
-## 🚀 Ús
-
-Per executar el planificador amb un domini i problema específics, des de l'arxiu arrel del projecte, utilitzeu la següent comanda:
+To run the planner with a specific domain and problem:
 
 ```bash
-./programa/metricff.exe -o <path_al_domini.pddl> -f <path_al_problema.pddl> -O
+./programa/metricff.exe -o <path_to_domain.pddl> -f <path_to_problem.pddl> -O
 ```
-
-Per exemple, per executar el planificador amb el domini bàsic i un problema específic:
-
-```bash
-./programa/metricff.exe -o basic/domini_basic.pddl -f basic/problems/basic.pddl -O
-```
-
-El flag `-O`, és OPCIONAL I s'utilitza per activar **l'optimització basada en mètriques** definides al domini PDDL.
-
-## 👥 Autors
-
-- Ferran Òdena
-- Carlos Palazón  
-- Pol Riera
+*The `-O` flag is used to enable metric-based optimization defined within the PDDL files.*
